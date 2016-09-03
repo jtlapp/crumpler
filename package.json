@@ -1,0 +1,37 @@
+{
+  "name": "tap-big-text",
+  "version": "1.0.0",
+  "description": "tap assertions that shrink long text to just the diffs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jtlapp/tap-big-text.git"
+  },
+  "keywords": [
+    "tap",
+    "test",
+    "assertions",
+    "assert",
+    "text"
+  ],
+  "author": {
+    "name": "Joe Lapp",
+    "email": "arachnojoe@gmail.com",
+    "url": "http://josephtlapp.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jtlapp/tap-big-text/issues"
+  },
+  "homepage": "https://github.com/jtlapp/tap-big-text#readme",
+  "dependencies": {
+    "diff": "^3.0.0",
+    "lodash": "^4.15.0"
+  },
+  "devDependencies": {
+    "tap": "^7.0.0"
+  }
+}
