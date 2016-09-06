@@ -144,10 +144,15 @@ module.exports = Crumpler;
 
 /**
  * Adds assertions to an instance of tap that call shortenDiff() on found and wanted values for a provided instance of Crumpler. When lines are being numbered, attaches a { lineNumbers: true } option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing found and wanted text.
+ *
+ * @param The instance of the tap module to which to add the assertions.
  */
 
-Crumpler.prototype.addAsserts = function (tap) {
-
+Crumpler.addAsserts = function (tap) {
+    tap.Test.prototype.addAssert('textEqual', 3, textEqual);
+    tap.Test.prototype.addAssert('textEquals', 3, textEqual);
+    tap.Test.prototype.addAssert('textInequal', 3, textNotEqual);
+    tap.Test.prototype.addAssert('textNotEqual', 3, textNotEqual);
 };
 
 /**
@@ -359,10 +364,18 @@ Crumpler.prototype._shorten = function (text, maxLineLength, linesOnly)
 
 //// ASSERTIONS ///////////////////////////////////////////////////////////////
 
-function textEqual(found, wanted) {
+function textEqual(found, wanted, crumpler, message, extra) {
+    crumpler = crumpler || new Crumpler();
+    message = message || "text should be identical";
+    var shrunk = crumpler.textDiff(found, wanted);
+    return this.equal(shrunk.found, shrunk.wanted, message, extra);
 }
 
-function textNotEqual(notWanted) {
+function textNotEqual(found, notWanted, crumpler, message, extra) {
+    crumpler = crumpler || new Crumpler();
+    message = message || "text should be different";
+    var shrunk = crumpler.textDiff(found, notWanted);
+    return this.notEqual(shrunk.found, shrunk.wanted, message, extra);
 }
 
 //// SUPPORT FUNCTIONS ////////////////////////////////////////////////////////
