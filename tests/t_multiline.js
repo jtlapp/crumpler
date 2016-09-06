@@ -128,3 +128,17 @@ t.test("shorten text with numbering", function (t) {
 
     t.end();
 });
+
+t.test("fully shrink real text", function (t) {
+    var crumpler = new Crumpler({
+        bracketSize: 2,
+        lineNumberPadding: '0',
+        indentCollapsedLines: false
+    });
+    var moby = lib.loadFixture('moby_orig.txt');
+    var mobyShrunk = lib.loadFixture('moby_shrunk.txt');
+    t.equal(crumpler.shortenText(moby, 200), mobyShrunk,
+        "Moby Dick Chapter 1");
+        
+    t.end();
+});

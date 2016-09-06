@@ -32,6 +32,10 @@ exports.midWantedLines = function () {
 };
 
 exports.numberLines = function (text, padChar, delim) {
+    if (_.isUndefined(padChar))
+        padChar = '';
+    if (_.isUndefined(delim))
+        delim = ':';
     var lines = text.split("\n");
     if (lines.length > 1 && lines[lines.length - 1] === '')
         lines.pop();
