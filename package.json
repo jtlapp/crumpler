@@ -1,21 +1,22 @@
 {
-  "name": "tap-big-text",
-  "version": "1.0.0",
-  "description": "tap assertions that shrink long text to just the diffs",
+  "name": "crumpler",
+  "version": "0.5.0",
+  "description": "tap assertions that shrink lengthy text to just the diffs",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jtlapp/tap-big-text.git"
+    "url": "git+https://github.com/jtlapp/crumpler.git"
   },
   "keywords": [
     "tap",
     "test",
     "assertions",
     "assert",
-    "text"
+    "text",
+    "texts"
   ],
   "author": {
     "name": "Joe Lapp",
@@ -24,9 +25,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jtlapp/tap-big-text/issues"
+    "url": "https://github.com/jtlapp/crumpler/issues"
   },
-  "homepage": "https://github.com/jtlapp/tap-big-text#readme",
+  "homepage": "https://github.com/jtlapp/crumpler#readme",
   "dependencies": {
     "diff": "^3.0.0",
     "lodash": "^4.15.0"
