@@ -10,20 +10,37 @@ var Extent = require('./lib/Extent');
 
 //// CONSTANTS ////////////////////////////////////////////////////////////////
 
-var DEFAULT_COLLAPSED_SAME_LINES   = "  ...";
-var DEFAULT_COLLAPSED_WANTED_LINES = "   ...";
-var DEFAULT_COLLAPSED_FOUND_LINES  = "    ...";
+var DEFAULT_COLLAPSED_SAME_LINES   = " ...";
+var DEFAULT_COLLAPSED_WANTED_LINES = "  ...";
+var DEFAULT_COLLAPSED_FOUND_LINES  = "   ...";
 var DEFAULT_COLLAPSED_LINE_START = "[{n} chars...]";
 var DEFAULT_COLLAPSED_LINE_END   = "[...{n} chars]";
 
 /******************************************************************************
-The Crumpler class is the public interface. It can collapse a sequence of lines into a configured abbreviation for that sequence, and it can collapse very long lines at the start and end into short representations for the characters removed. Characters are collapsed from the start and end of a line when the difference between mismatching found and wanted lines is somewhere in the middle of the line. The options for collapsing individual lines are provided to the methods. The following option governs collapsing sequences of lines:
+The Crumpler class is the public interface. It can collapse a sequence of lines into a configured abbreviation for that sequence, and it can collapse very long lines at the start and end into short representations for the characters removed. Characters are collapsed from the start and end of a line when the difference between mismatching found and wanted lines is somewhere in the middle of the line. The following options govern collapsing sequences of lines:
 
   bracketSize: Number of lines to show on each side of a sequence of lines that
-    has been collapsed. Must be >= 1. (default 3)
+    has been collapsed. Set to 0 to turn off bracketing, so that lines are not
+    removed. Bracketing can also be avoided, regardless of the value of this
+    option, by calling shortenLines(). (default 2)
   minCollapseLines: Minimum number of lines that can be removed from a collapsed
     sequence of lines. If a collapse would not removed at least this many lines,
     the sequence of lines does not collapse. Must be >= 2. (default 2)
+
+The following options govern collapsing individual lines. The methods also accept these values. The values configured here apply during a method call when not passed to the method.
+
+  maxLineLength: The maximum number of characters allowed in a line. Lines are
+    collapsed at the start or at the end or at both start and end, depending on
+    circumstances, in order to fit the line to this length. The strings that
+    replace the collapses are included within this length limit, so that the
+    entire line, including collapses do not exceed this limit. Set to 0 to
+    eliminate a maximum line length limit. (default 0)
+  sameLength: This is the preferred number of characters to display before the
+    first differing character when collapsing a line to emphasize differences
+    with another line. 0 collapses the line to start at the first different
+    character, unless there is room on the line to display more characters
+    before the difference. -1 positions the first differing character at about
+    the center of the line, when collapsed at both ends. (default -1)
 
 This set of options provides replacement text for text that is removed in the process of shortening long text. Each of these options may optionally contain a "{n}" placeholder for a number. The options that collapse across lines will replace "{n}" with the number of lines removed, and the options that collapse within a line will replace "{n}" with the number of characters removed. The number of lines removed is always at least 2, and the number of characters removed from a line is at least the length of its replacement text, so any language in the replacement strings can assume a plurality.
 
@@ -33,7 +50,7 @@ This set of options provides replacement text for text that is removed in the pr
   collapsedStartLine: string replacing collapsed start of long line
   collapsedEndLine: string replacing collapsed end of long line
   indentCollapsedLines: true => indent collapsed lines by the padded width of
-    the last output line number + lineNumberDelim.length (default true)
+    the last output line number + lineNumberDelim.length (default false)
   
 collapsedSameLines, collapsedWantedLines, and collapsedFoundLines need not all be different, but they should all be different. Making them distinct from one another helps any downstream tool that diffs the collapsed strings to properly identify changes. Otherwise the tool may assume collapsed lines are unchanged. Any of these collapse replacement strings may also be empty.
 
@@ -74,13 +91,15 @@ function Crumpler(options) {
     
     options = options || {};
     if (!_.isInteger(options.bracketSize))
-        options.bracketSize = 3;
-    else if (options.bracketSize < 1)
-        options.bracketSize = 1;
+        options.bracketSize = 2;
     if (!_.isInteger(options.minCollapseLines))
         options.minCollapseLines = 2;
     else if (options.minCollapseLines < 2)
         options.minCollapseLines = 2;
+    if (!_.isInteger(options.maxLineLength))
+        options.maxLineLength = 0;
+    if (!_.isInteger(options.sameLength))
+        options.sameLength = -1;
     if (!_.isString(options.collapsedSameLines))
         options.collapsedSameLines = DEFAULT_COLLAPSED_SAME_LINES;
     if (!_.isString(options.collapsedWantedLines))
@@ -92,9 +111,9 @@ function Crumpler(options) {
     if (!_.isString(options.collapsedEndLine))
         options.collapsedEndLine = DEFAULT_COLLAPSED_LINE_END;
     if (!_.isBoolean(options.indentCollapsedLines))
-        options.indentCollapsedLines = true;
+        options.indentCollapsedLines = false;
     if (!_.isInteger(options.minNumberedLines))
-        this.opts.minNumberedLines = 2;
+        options.minNumberedLines = 2;
     if (_.isUndefined(options.lineNumberPadding))
         options.lineNumberPadding = null;
     else if (options.lineNumberPadding === '')
@@ -108,12 +127,12 @@ function Crumpler(options) {
     config.lineStartInfo = Extent.getCollapseInfo(options.collapsedStartLine);
     config.lineEndInfo = Extent.getCollapseInfo(options.collapsedEndLine);
         
-    config.paddingByLength = null;
+    config.paddingByWidth = [];
     var padding = options.lineNumberPadding;
     if (padding !== null) {
         // this padding cache is more resource-efficient than _.padStart()
         for (var i = 0; i < 10; ++i)
-            config.paddingByLength[i] = padding.repeat(i); //works for i==0 too
+            config.paddingByWidth[i] = padding.repeat(i); //works for i==0 too
     }
 
     this.opts = options; // bundled for easy passing to TextSection
@@ -124,55 +143,11 @@ module.exports = Crumpler;
 //// PUBLIC METHODS ///////////////////////////////////////////////////////////
 
 /**
- * 
+ * Adds assertions to an instance of tap that call shortenDiff() on found and wanted values for a provided instance of Crumpler. When lines are being numbered, attaches a { lineNumbers: true } option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing found and wanted text.
  */
 
 Crumpler.prototype.addAsserts = function (tap) {
 
-};
-
-/**
- * Shorten the individual lines of the text without removing any lines. Lines longer than the maximum length are collapsed at the ends as configured. Also number the lines according to the configuration.
- *
- * @param text String containing one or more lines to shorten. LFs ("\n") are assumed to delimit lines, so a trailing LF indicates a blank line.
- * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. (default 0)
- * @returns a String of the text with lines shortened as specified
- */
-
-Crumpler.prototype.shortenLines = function (text, maxLineLength) {
-    if (_.isUndefined(maxLineLength))
-        maxLineLength = 0;
-    var lines = toLinesWithOptionalLF(text);
-    var extent = new Extent(
-            this.opts, this.config, maxLineLength, 0, null,
-            this._isNumberingLines(lines.length),
-            Extent.digitCount(lines.length)
-        );
-    extent.shortenLines(lines, 0, 1, lines.length, 0);
-    return toTextWithOptionalLF(lines, text);
-};
-
-/**
- * Shorten the entire text, both reducing the number of lines and the lengths of the individual lines, according to the configuration. Also number the lines according to the configuration. Collapses sequences of lines as well as the ends of lines that exceed the indicated maximum line length.
- *
- * @param text String of one or more lines of text to shorten.
- * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. (default 0)
- * @returns a String of the text shortened as specified
- */
-
-Crumpler.prototype.shortenText = function (text, maxLineLength)
-{
-    if (_.isUndefined(maxLineLength))
-        maxLineLength = 0; // no line length limit
-    var lines = toLinesWithOptionalLF(text);
-    var extent = new Extent(
-            this.opts, this.config, maxLineLength, 0,
-            this.opts.collapsedSameLines,
-            this._isNumberingLines(lines.length),
-            Extent.digitCount(lines.length)
-        );
-    extent.shortenText(lines, 1, 0);
-    return toTextWithOptionalLF(lines, text);
 };
 
 /**
@@ -182,31 +157,33 @@ Crumpler.prototype.shortenText = function (text, maxLineLength)
  *
  * @param found The found text string.
  * @param wanted The wanted text string.
- * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. (default 0)
- * @param sameLength When a line of the found value differs from a line of the wanted value, and when maxLineLength is non-zero, the two corresponding lines can be collapsed analogously to ensure that at least the first different character is shown within the collapsed line. When sameLength is -1, this first character is approximately centered within the collapsed line. When sameLength >= 1, at most a number of characters equal to sameLength is presented prior to the first differing character.
+ * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. Defaults to the value set for the Crumpler instance.
+ * @param sameLength When a line of the found value differs from a line of the wanted value, and when maxLineLength is non-zero, the two corresponding lines can be collapsed analogously to ensure that at least the first different character is shown within the collapsed line. When sameLength is -1, this first character is approximately centered within the collapsed line. When sameLength >= 1 and the end of the line is being truncated, at most sameLength characters are presented prior to the first differing character. Defaults to the value set for the Crumpler instance.
  * @returns An object {found, wanted} containing the collapsed found text and the collapsed wanted text, shortened to optimize comparing their differences.
  */
 
-Crumpler.prototype.shortenTextToDiffs = function (
+Crumpler.prototype.shortenDiff = function (
         found, wanted, maxLineLength, sameLength)
 {
+    if (typeof wanted !== 'string')
+        throw new Error("wanted value must be a string");
     if (_.isUndefined(maxLineLength))
-        maxLineLength = 0; // unlimited line lengths
+        maxLineLength = this.opts.maxLineLength;
     if (_.isUndefined(sameLength))
-        sameLength = -1; // center first differing char
+        sameLength = this.opts.sameLength;
         
     // If there are no diffs, short-circuit returning identically
     // shortened values.
     
     if (found === wanted) {
-        wanted = exports.shortenText(wanted, maxLineLength);
+        wanted = this._shorten(wanted, maxLineLength, false);
         return { found: wanted, wanted: wanted };
     }
     
     // Just shorten the wanted value if the found value isn't a string
     
     if (typeof found !== 'string') {
-        wanted = exports.shortenText(wanted, maxLineLength);
+        wanted = this._shorten(wanted, maxLineLength, false);
         return { found: found, wanted: wanted };
     }
     
@@ -268,11 +245,11 @@ Crumpler.prototype.shortenTextToDiffs = function (
                     this.opts, this.config, maxLineLength, sameLength,
                     this.opts.collapsedWantedLines, numberingLines, padWidth
                 );
-            extent.shortenText(deltaLines, wantedLineNumber, lineDiffOffset);
+            extent.shorten(deltaLines, wantedLineNumber, lineDiffOffset);
             deltaLines.forEach(function (line) {
                 wantedLines.push(line); // Array::concat() seems wasteful
             });
-            wantedLineNumber += deltaLines.length;
+            wantedLineNumber += delta.count;
         }
         
         // handle a sequence of lines added to the found value
@@ -282,11 +259,11 @@ Crumpler.prototype.shortenTextToDiffs = function (
                     this.opts, this.config, maxLineLength, sameLength,
                     this.opts.collapsedFoundLines, numberingLines, padWidth
                 );
-            extent.shortenText(deltaLines, foundLineNumber, lineDiffOffset);
+            extent.shorten(deltaLines, foundLineNumber, lineDiffOffset);
             deltaLines.forEach(function (line) {
                 foundLines.push(line); // Array::concat() seems wasteful
             });
-            foundLineNumber += deltaLines.length;
+            foundLineNumber += delta.count;
         }
         
         // handle a sequence of lines common to both found and wanted
@@ -297,7 +274,7 @@ Crumpler.prototype.shortenTextToDiffs = function (
                     this.opts.collapsedSameLines, numberingLines, padWidth
                 );
             if (foundLineNumber === wantedLineNumber) {
-                extent.shortenText(deltaLines, foundLineNumber, 0);
+                extent.shorten(deltaLines, foundLineNumber, 0);
                 deltaLines.forEach(function (line) {
                     wantedLines.push(line); // Array::concat() seems wasteful
                     foundLines.push(line);
@@ -305,17 +282,17 @@ Crumpler.prototype.shortenTextToDiffs = function (
             }
             else {
                 deltaLinesCopy = deltaLines.slice(0);
-                extent.shortenText(deltaLines, foundLineNumber, 0);
+                extent.shorten(deltaLines, wantedLineNumber, 0);
                 deltaLines.forEach(function (line) {
                     wantedLines.push(line); // Array::concat() seems wasteful
                 });
-                extent.shortenText(deltaLinesCopy, foundLineNumber, 0);
+                extent.shorten(deltaLinesCopy, foundLineNumber, 0);
                 deltaLinesCopy.forEach(function (line) {
                     foundLines.push(line);
                 });
             }
-            wantedLineNumber += deltaLines.length;
-            foundLineNumber += deltaLines.length;
+            wantedLineNumber += delta.count;
+            foundLineNumber += delta.count;
         }
     }
     
@@ -328,6 +305,34 @@ Crumpler.prototype.shortenTextToDiffs = function (
     };
 };
 
+/**
+ * Shorten the individual lines of the text without removing any lines. Lines longer than the maximum length are collapsed at the ends as configured. Also number the lines according to the configuration.
+ *
+ * @param text String containing one or more lines to shorten. LFs ("\n") are assumed to delimit lines, so a trailing LF indicates a blank line.
+ * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. Defaults to the value set for the Crumpler instance.
+ * @returns a String of the text with lines shortened as specified
+ */
+
+Crumpler.prototype.shortenLines = function (text, maxLineLength) {
+    if (_.isUndefined(maxLineLength))
+        maxLineLength = this.opts.maxLineLength;
+    return this._shorten(text, maxLineLength, true);
+};
+
+/**
+ * Shorten the entire text, both reducing the number of lines and the lengths of the individual lines, according to the configuration. Also number the lines according to the configuration. Collapses sequences of lines as well as the ends of lines that exceed the indicated maximum line length.
+ *
+ * @param text String of one or more lines of text to shorten.
+ * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. Defaults to the value set for the Crumpler instance.
+ * @returns a String of the text shortened as specified
+ */
+
+Crumpler.prototype.shortenText = function (text, maxLineLength) {
+    if (_.isUndefined(maxLineLength))
+        maxLineLength = this.opts.maxLineLength;
+    return this._shorten(text, maxLineLength, false);
+};
+
 //// PRIVATE METHODS //////////////////////////////////////////////////////////
 
 Crumpler.prototype._isNumberingLines = function (lineCount) {
@@ -336,12 +341,28 @@ Crumpler.prototype._isNumberingLines = function (lineCount) {
     return (lineCount >= this.opts.minNumberedLines);
 };
 
+Crumpler.prototype._shorten = function (text, maxLineLength, linesOnly)
+{
+    var lines = toLinesWithOptionalLF(text);
+    var extent = new Extent(
+            this.opts, this.config, maxLineLength, 0,
+            this.opts.collapsedSameLines,
+            this._isNumberingLines(lines.length),
+            Extent.digitCount(lines.length)
+        );
+    if (linesOnly || this.opts.bracketSize === 0)
+        extent.shortenLines(lines, 0, 1, lines.length, 0);
+    else
+        extent.shortenText(lines, 1, 0);
+    return toTextWithOptionalLF(lines, text);
+};
+
 //// ASSERTIONS ///////////////////////////////////////////////////////////////
 
-function linesEqual(found, wanted) {
+function textEqual(found, wanted) {
 }
 
-function linesNotEqual(notWanted) {
+function textNotEqual(notWanted) {
 }
 
 //// SUPPORT FUNCTIONS ////////////////////////////////////////////////////////
