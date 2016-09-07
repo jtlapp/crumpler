@@ -4,7 +4,8 @@ var lib = require('./lib/library');
 
 t.test("larger text determines whether numbering", function (t) {
     var crumpler = new Crumpler({
-        bracketSize: 0,
+        normBracketSize: 0,
+        diffBracketSize: 0,
         minNumberedLines: 4
     });
 
@@ -49,7 +50,8 @@ t.test("larger text determines whether numbering", function (t) {
 
 t.test("numbering inserted and removed lines", function (t) {
     var crumpler = new Crumpler({
-        bracketSize: 0,
+        normBracketSize: 0,
+        diffBracketSize: 0,
         minNumberedLines: 2
     });
 
@@ -107,7 +109,10 @@ t.test("numbering inserted and removed lines", function (t) {
 
 t.test("diff real text", function (t) {
     var crumpler = new Crumpler({
-        bracketSize: 1,
+        normBracketSize: 1,
+        diffBracketSize: 0,
+        maxNormLineLength: 200,
+        maxDiffLineLength: 200,
         lineNumberPadding: '0',
         indentCollapseEllipses: false
     });
@@ -116,7 +121,7 @@ t.test("diff real text", function (t) {
     var mobyFixedUp = moby.replace("a grasshopper", "Phidippus mystaceus");
     var mobyWantedOut = lib.loadFixture('moby_wanted.txt');
     var mobyFoundOut = lib.loadFixture('moby_found.txt');
-    foundPair = crumpler.shortenDiff(mobyFixedUp, moby, 200);
+    foundPair = crumpler.shortenDiff(mobyFixedUp, moby);
     lib.testDiffs(t, "multiple head/tail-collapsed lines, numbered", foundPair,
         {
             subject: mobyFoundOut,

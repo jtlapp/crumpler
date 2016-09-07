@@ -36,7 +36,7 @@ t.test("numbering with padding, indented collapsed lines", function (t) {
         lineNumberPadding: '0',
         indentCollapseEllipses: true,
         lineNumberDelim: ': ',
-        bracketSize: 3
+        normBracketSize: 3
     });
 
     t.equal(crumpler.shortenText(lib.subsetLines(tenLines, 8)),
@@ -59,7 +59,7 @@ t.test("numbering with padding, unindented collapsed lines", function (t) {
         lineNumberPadding: ' ',
         indentCollapseEllipses: false,
         lineNumberDelim: '. ',
-        bracketSize: 3
+        normBracketSize: 3
     });
 
     t.equal(crumpler.shortenText(lib.subsetLines(tenLines, 8)),
@@ -82,7 +82,7 @@ function (t) {
     var crumpler = new Crumpler({
         indentCollapseEllipses: true,
         lineNumberDelim: '',
-        bracketSize: 3
+        normBracketSize: 3
     });
 
     t.equal(crumpler.shortenText(lib.subsetLines(tenLines, 8)),

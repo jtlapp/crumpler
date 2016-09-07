@@ -99,29 +99,35 @@ function Crumpler(options) {
         return new Crumpler(options);
     
     options = options || {};
-    if (!_.isInteger(options.bracketSize))
-        options.bracketSize = 2;
-    if (!_.isInteger(options.minCollapsedLines))
+    if (_.isUndefined(options.normBracketSize))
+        options.normBracketSize = 2;
+    if (_.isUndefined(options.diffBracketSize))
+        options.diffBracketSize = 2;
+    if (_.isUndefined(options.minCollapsedLines))
         options.minCollapsedLines = 2;
     else if (options.minCollapsedLines < 1)
-        options.minCollapsedLines = 1;
-    if (!_.isInteger(options.maxLineLength))
-        options.maxLineLength = 0;
-    if (!_.isInteger(options.sameLength))
-        options.sameLength = -1;
-    if (!_.isString(options.normCollapseEllipsis))
+        throw new Error("minCollapsedLines must be >= 1");
+    if (_.isUndefined(options.maxNormLineLength))
+        options.maxNormLineLength = 0;
+    if (_.isUndefined(options.maxDiffLineLength))
+        options.maxDiffLineLength = 0;
+    if (_.isUndefined(options.sameHeadLengthLimit))
+        options.sameHeadLengthLimit = -1;
+    if (_.isUndefined(options.sameTailLengthLimit))
+        options.sameTailLengthLimit = -1;
+    if (_.isUndefined(options.normCollapseEllipsis))
         options.normCollapseEllipsis = DEFAULT_NORM_COLLAPSE_ELLIPSIS;
-    if (!_.isString(options.subjectCollapseEllipsis))
+    if (_.isUndefined(options.subjectCollapseEllipsis))
         options.subjectCollapseEllipsis = DEFAULT_SUBJECT_COLLAPSE_ELLIPSIS;
-    if (!_.isString(options.modelCollapseEllipsis))
+    if (_.isUndefined(options.modelCollapseEllipsis))
         options.modelCollapseEllipsis = DEFAULT_MODEL_COLLAPSE_ELLIPSIS;
-    if (!_.isString(options.headCropEllipsis))
+    if (_.isUndefined(options.headCropEllipsis))
         options.headCropEllipsis = DEFAULT_HEAD_CROP_ELLIPSIS;
-    if (!_.isString(options.tailCropEllipsis))
+    if (_.isUndefined(options.tailCropEllipsis))
         options.tailCropEllipsis = DEFAULT_TAIL_CROP_ELLIPSIS;
-    if (!_.isBoolean(options.indentCollapseEllipses))
+    if (_.isUndefined(options.indentCollapseEllipses))
         options.indentCollapseEllipses = false;
-    if (!_.isInteger(options.minNumberedLines))
+    if (_.isUndefined(options.minNumberedLines))
         options.minNumberedLines = 2;
     if (_.isUndefined(options.lineNumberPadding))
         options.lineNumberPadding = null;
@@ -129,8 +135,11 @@ function Crumpler(options) {
         options.lineNumberPadding = null;
     if (options.lineNumberDelim === null)
         options.lineNumberDelim = '';
-    else if (!_.isString(options.lineNumberDelim))
+    else if (_.isUndefined(options.lineNumberDelim))
         options.lineNumberDelim = ':';
+        
+    if (options.sameHeadLengthLimit >= options.maxDiffLineLength)
+        throw new Error("sameHeadLengthLimit must be < maxDiffLineLength");
         
     var config = {};
     config.headInfo = Extent.getCollapseInfo(options.headCropEllipsis);
@@ -154,32 +163,24 @@ module.exports = Crumpler;
 /**
  * Shorten the subject and model text strings to minimal representations that clearly show differences between them. Returns a collapsed subject value and a collapsed model value that themselves can be compared using a diffing tool to properly highlight their differences. The method reduces both the number of lines and the lengths of individual lines, according to the configuration. It also numbers the lines in accordance with the configuration.
  *
- * If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagre on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless they are removed prior to diffing.
+ * If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagree on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless they are removed prior to diffing.
  *
  * @param subject The subject text string.
  * @param model The model text string.
- * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. Defaults to the value set for the Crumpler instance.
- * @param sameLength When a line of the subject value differs from a line of the model value, and when maxLineLength is non-zero, the two corresponding lines can be collapsed analogously to ensure that at least the first different character is shown within the collapsed line. When sameLength is -1, this first character is approximately centered within the collapsed line. When sameLength >= 1 and the end of the line is being truncated, at most sameLength characters are presented prior to the first differing character. Defaults to the value set for the Crumpler instance.
  * @returns An object {subject, model, numbered} containing the abbreviated subject and model texts, shortened to optimize comparing their differences. It also contains a boolean indicating whether the subject and model texts were numbered.
  */
 
-Crumpler.prototype.shortenDiff = function (
-        subject, model, maxLineLength, sameLength)
+Crumpler.prototype.shortenDiff = function (subject, model)
 {
     if (typeof model !== 'string')
         throw new Error("model value must be a string");
-    if (_.isUndefined(maxLineLength))
-        maxLineLength = this.opts.maxLineLength;
-    if (_.isUndefined(sameLength))
-        sameLength = this.opts.sameLength;
-        
-    // TBD: take advantage of Extent being stateless
         
     // If there are no diffs, short-circuit returning identically
     // shortened values.
     
     if (subject === model) {
-        var shrunk = this._shorten(model, maxLineLength, false);
+        var shrunk = this._shorten(model, this.opts.maxNormLineLength,
+                this.opts.normBracketSize);
         shrunk.model = shrunk.subject;
         return shrunk;
     }
@@ -187,7 +188,8 @@ Crumpler.prototype.shortenDiff = function (
     // Just shorten the model value if the subject value isn't a string
     
     if (typeof subject !== 'string') {
-        var shrunk = this._shorten(model, maxLineLength, false);
+        var shrunk = this._shorten(model, this.opts.maxNormLineLength,
+                this.opts.normBracketSize);
         shrunk.model = shrunk.subject;
         shrunk.subject = subject;
         return shrunk;
@@ -227,16 +229,19 @@ Crumpler.prototype.shortenDiff = function (
     // Create the extents needed for this run. They are stateless.
     
     var normExtent = new Extent(
-        this.opts, this.config, maxLineLength, sameLength,
-        this.opts.normCollapseEllipsis, numberingLines, padWidth
+        this.opts, this.config, this.opts.maxNormLineLength,
+        this.opts.normBracketSize, this.opts.normCollapseEllipsis,
+        numberingLines, padWidth
     );
     var subjectExtent = new Extent(
-        this.opts, this.config, maxLineLength, sameLength,
-        this.opts.subjectCollapseEllipsis, numberingLines, padWidth
+        this.opts, this.config, this.opts.maxDiffLineLength,
+        this.opts.diffBracketSize, this.opts.subjectCollapseEllipsis,
+        numberingLines, padWidth
     );
     var modelExtent = new Extent(
-        this.opts, this.config, maxLineLength, sameLength,
-        this.opts.modelCollapseEllipsis, numberingLines, padWidth
+        this.opts, this.config, this.opts.maxDiffLineLength,
+        this.opts.diffBracketSize, this.opts.modelCollapseEllipsis,
+        numberingLines, padWidth
     );
     
     // Separately collapse each delta produced by the diffing tool,
@@ -320,28 +325,29 @@ Crumpler.prototype.shortenDiff = function (
  * Shorten the individual lines of the text without removing any lines. Lines longer than the maximum length are collapsed at the ends as configured. Also number the lines according to the configuration.
  *
  * @param text String containing one or more lines to shorten. LFs ("\n") are assumed to delimit lines, so a trailing LF indicates a blank line.
- * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. Defaults to the value set for the Crumpler instance.
+ * @param maxLineLength Maximum characters of a line to include. 0 allows lines of unlimited length. Defaults to the maxNormLineLength option.
  * @returns a String of the text with lines shortened as specified
  */
 
 Crumpler.prototype.shortenLines = function (text, maxLineLength) {
     if (_.isUndefined(maxLineLength))
-        maxLineLength = this.opts.maxLineLength;
-    return this._shorten(text, maxLineLength, true).subject;
+        maxLineLength = this.opts.maxNormLineLength;
+    return this._shorten(text, maxLineLength, 0).subject;
 };
 
 /**
  * Shorten the entire text, both reducing the number of lines and the lengths of the individual lines, according to the configuration. Also number the lines according to the configuration. Collapses sequences of lines as well as the ends of lines that exceed the indicated maximum line length.
  *
  * @param text String of one or more lines of text to shorten.
- * @param maxLineLength Maxinum characters allowed in a line, including added line numbers. 0 allows lines to be of unlimited length. Defaults to the value set for the Crumpler instance.
+ * @param maxLineLength Maximum characters of a line to include. 0 allows lines of unlimited length. Defaults to the maxNormLineLength option.
  * @returns a String of the text shortened as specified
  */
 
 Crumpler.prototype.shortenText = function (text, maxLineLength) {
     if (_.isUndefined(maxLineLength))
-        maxLineLength = this.opts.maxLineLength;
-    return this._shorten(text, maxLineLength, false).subject;
+        maxLineLength = this.opts.maxNormLineLength;
+    return this._shorten(text, maxLineLength,
+            this.opts.normBracketSize).subject;
 };
 
 //// PRIVATE METHODS //////////////////////////////////////////////////////////
@@ -352,17 +358,16 @@ Crumpler.prototype._isNumberingLines = function (lineCount) {
     return (lineCount >= this.opts.minNumberedLines);
 };
 
-Crumpler.prototype._shorten = function (text, maxLineLength, linesOnly)
+Crumpler.prototype._shorten = function (text, maxLineLength, bracketSize)
 {
     var lines = toLinesWithOptionalLF(text);
     var numberingLines = this._isNumberingLines(lines.length);
     var extent = new Extent(
-            this.opts, this.config, maxLineLength, 0,
-            this.opts.normCollapseEllipsis,
-            numberingLines,
-            Extent.digitCount(lines.length)
+            this.opts, this.config, maxLineLength,
+            bracketSize, this.opts.normCollapseEllipsis,
+            numberingLines, Extent.digitCount(lines.length)
         );
-    if (linesOnly || this.opts.bracketSize === 0)
+    if (bracketSize === 0)
         extent.shortenLines(lines, 0, 1, lines.length, 0);
     else
         extent.shortenText(lines, 1, 0);

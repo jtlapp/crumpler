@@ -41,7 +41,7 @@ t.test("default multiline collapsing", function (t) {
 t.test("custom multiline collapsing", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        bracketSize: 1,
+        normBracketSize: 1,
         minCollapsedLines: 5
     });
     
@@ -68,7 +68,7 @@ t.test("shorten text with replacement collapse", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
         normCollapseEllipsis: "  (lines removed)",
-        bracketSize: 3
+        normBracketSize: 3
     });
     t.equal(crumpler.shortenText(tenLines),
         util.format(wanted, "  (lines removed)"),
@@ -77,7 +77,7 @@ t.test("shorten text with replacement collapse", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
         normCollapseEllipsis: "\n...\n",
-        bracketSize: 3
+        normBracketSize: 3
     });
     t.equal(crumpler.shortenText(tenLines),
         util.format(wanted, "\n...\n"),
@@ -86,7 +86,7 @@ t.test("shorten text with replacement collapse", function (t) {
     crumpler = new Crumpler({
         minNumberedLines: 0,
         normCollapseEllipsis: "... skipping {n} lines ...",
-        bracketSize: 3
+        normBracketSize: 3
     });
     t.equal(crumpler.shortenText(tenLines),
         util.format(wanted, "... skipping 4 lines ..."),
@@ -97,7 +97,7 @@ t.test("shorten text with replacement collapse", function (t) {
 
 t.test("shorten text with numbering", function (t) {
     var crumpler = new Crumpler({
-        bracketSize: 3,
+        normBracketSize: 3,
         indentCollapseEllipses: true
     });
 
@@ -131,7 +131,7 @@ t.test("shorten text with numbering", function (t) {
 
 t.test("fully shrink real text", function (t) {
     var crumpler = new Crumpler({
-        bracketSize: 2,
+        normBracketSize: 2,
         lineNumberPadding: '0',
         indentCollapseEllipses: false
     });

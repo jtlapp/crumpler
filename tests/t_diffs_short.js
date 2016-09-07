@@ -9,7 +9,8 @@ var ALPHANUM = "abcdefghijklmnopqrstuvwxyz0123456789";
 t.test("incomparable or identical", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        bracketSize: 3
+        normBracketSize: 3,
+        diffBracketSize: 3
     });
     
     var notStringError = new Error("model value must be a string");
@@ -48,14 +49,19 @@ t.test("incomparable or identical", function (t) {
     lib.testDiffs(t, "identical 10-line strings", foundPair,
         { subject: wanted, model: wanted, numbered: false });
     
-    foundPair = crumpler.shortenDiff(ALPHANUM, ALPHANUM, 16);
+    crumpler = new Crumpler({
+        minNumberedLines: 0,
+        normBracketSize: 3,
+        diffBracketSize: 3,
+        maxNormLineLength: 16
+    });
+    foundPair = crumpler.shortenDiff(ALPHANUM, ALPHANUM);
     var wanted = "abc"+ lib.endLine(33);
     lib.testDiffs(t, "identical collapsed single line", foundPair,
         { subject: wanted, model: wanted, numbered: false });
-
     var shortLine = ALPHANUM.substr(0, 16);
     var text = ALPHANUM +"\n"+ shortLine +"\n" + ALPHANUM +"\n";
-    foundPair = crumpler.shortenDiff(text, text, 16);
+    foundPair = crumpler.shortenDiff(text, text);
     wanted = wanted +"\n"+ shortLine +"\n"+ wanted +"\n";
     lib.testDiffs(t, "identical collapsed multiple lines", foundPair,
         { subject: wanted, model: wanted, numbered: false });
@@ -124,15 +130,24 @@ t.test("non-collapsed diffs within maximum line length", function (t) {
         { subject: found, model: wanted, numbered: false });
 
     crumpler = new Crumpler({
-        minNumberedLines: 0
+        minNumberedLines: 0,
+        maxNormLineLength: 3,
+        maxDiffLineLength: 3
     });
     wanted = "abc\n123";
     found =  "abc\ndef";
-    foundPair = crumpler.shortenDiff(found, wanted, 3);
+    foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "simple diff at maximum line length", foundPair,
         { subject: found, model: wanted, numbered: false });
-    foundPair = crumpler.shortenDiff(found, wanted, 3, 1);
-    lib.testDiffs(t, "simple diff at max line length, unused sameLength",
+
+    crumpler = new Crumpler({
+        minNumberedLines: 0,
+        maxNormLineLength: 3,
+        maxDiffLineLength: 3,
+        sameHeadLengthLimit: 1
+    });
+    foundPair = crumpler.shortenDiff(found, wanted);
+    lib.testDiffs(t, "simple diff at max line length, unused same length",
         foundPair, { subject: found, model: wanted, numbered: false });
     
     t.end();
@@ -141,7 +156,8 @@ t.test("non-collapsed diffs within maximum line length", function (t) {
 t.test("simple multiline collapse diffs", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        bracketSize: 1
+        normBracketSize: 1,
+        diffBracketSize: 1
     });
     
     var wantedIn = "ABC\nDEF\nGHI\nJKL\n";
@@ -177,7 +193,8 @@ t.test("simple multiline collapse diffs", function (t) {
 t.test("complex diffs within maximum line length", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        bracketSize: 1
+        normBracketSize: 1,
+        diffBracketSize: 1
     });
     
     var single_a = "abcdefghij\n";
