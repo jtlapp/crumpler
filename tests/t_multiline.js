@@ -42,7 +42,7 @@ t.test("custom multiline collapsing", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
         bracketSize: 1,
-        minCollapseLines: 5
+        minCollapsedLines: 5
     });
     
     var text = lib.subsetLines(tenLines, 6);
@@ -67,7 +67,7 @@ t.test("shorten text with replacement collapse", function (t) {
 
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        collapsedSameLines: "  (lines removed)",
+        normCollapseEllipsis: "  (lines removed)",
         bracketSize: 3
     });
     t.equal(crumpler.shortenText(tenLines),
@@ -76,7 +76,7 @@ t.test("shorten text with replacement collapse", function (t) {
     
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        collapsedSameLines: "\n...\n",
+        normCollapseEllipsis: "\n...\n",
         bracketSize: 3
     });
     t.equal(crumpler.shortenText(tenLines),
@@ -85,7 +85,7 @@ t.test("shorten text with replacement collapse", function (t) {
     
     crumpler = new Crumpler({
         minNumberedLines: 0,
-        collapsedSameLines: "... skipping {n} lines ...",
+        normCollapseEllipsis: "... skipping {n} lines ...",
         bracketSize: 3
     });
     t.equal(crumpler.shortenText(tenLines),
@@ -98,7 +98,7 @@ t.test("shorten text with replacement collapse", function (t) {
 t.test("shorten text with numbering", function (t) {
     var crumpler = new Crumpler({
         bracketSize: 3,
-        indentCollapsedLines: true
+        indentCollapseEllipses: true
     });
 
     t.equal(crumpler.shortenText(''), '',
@@ -133,7 +133,7 @@ t.test("fully shrink real text", function (t) {
     var crumpler = new Crumpler({
         bracketSize: 2,
         lineNumberPadding: '0',
-        indentCollapsedLines: false
+        indentCollapseEllipses: false
     });
     var moby = lib.loadFixture('moby_orig.txt');
     var mobyShrunk = lib.loadFixture('moby_shrunk.txt');

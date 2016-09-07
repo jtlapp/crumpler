@@ -34,7 +34,7 @@ t.test("minimum numbered lines", function (t) {
 t.test("numbering with padding, indented collapsed lines", function (t) {
     var crumpler = new Crumpler({
         lineNumberPadding: '0',
-        indentCollapsedLines: true,
+        indentCollapseEllipses: true,
         lineNumberDelim: ': ',
         bracketSize: 3
     });
@@ -57,7 +57,7 @@ t.test("numbering with padding, indented collapsed lines", function (t) {
 t.test("numbering with padding, unindented collapsed lines", function (t) {
     var crumpler = new Crumpler({
         lineNumberPadding: ' ',
-        indentCollapsedLines: false,
+        indentCollapseEllipses: false,
         lineNumberDelim: '. ',
         bracketSize: 3
     });
@@ -80,7 +80,7 @@ t.test("numbering with padding, unindented collapsed lines", function (t) {
 t.test("numbering w/out padding but no delimeter, indented collapsed",
 function (t) {
     var crumpler = new Crumpler({
-        indentCollapsedLines: true,
+        indentCollapseEllipses: true,
         lineNumberDelim: '',
         bracketSize: 3
     });

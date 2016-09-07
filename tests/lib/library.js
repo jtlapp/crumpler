@@ -66,10 +66,10 @@ exports.subsetLines = function (text, lineCount) {
 
 exports.testDiffs = function (t, testName, foundPair, wantedPair) {
     t.test(testName, function (t) {
-        t.equal(foundPair.found, wantedPair.found,
-            "collapsed found");
-        t.equal(foundPair.wanted, wantedPair.wanted,
-            "collapsed wanted");
+        t.equal(foundPair.subject, wantedPair.subject,
+            "collapsed subject");
+        t.equal(foundPair.model, wantedPair.model,
+            "collapsed model");
         t.end();
     });
 };

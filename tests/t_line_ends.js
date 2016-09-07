@@ -116,7 +116,7 @@ t.test("no-count line-end collapse text", function (t) {
     var tail = "...BlahBlahBlah";
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        collapsedEndLine: tail
+        tailCropEllipsis: tail
     });
     
     t.equal(crumpler.shortenLines(ALPHANUM, 3 + tail.length), "abc" + tail,
@@ -156,7 +156,7 @@ t.test("no-count line-end collapse text", function (t) {
 t.test("empty line-end collapse text", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0,
-        collapsedEndLine: ''
+        tailCropEllipsis: ''
     });
     
     t.equal(crumpler.shortenLines(ALPHANUM, 3), "abc",

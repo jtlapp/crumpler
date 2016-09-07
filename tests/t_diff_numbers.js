@@ -21,19 +21,28 @@ t.test("larger text determines whether numbering", function (t) {
     
     var foundPair = crumpler.shortenDiff(twoLines, threeLines);
     lib.testDiffs(t, "both two short to number",
-        foundPair, { found: twoLines, wanted: threeLines });
+        foundPair, { subject: twoLines, model: threeLines, numbered: false });
 
     foundPair = crumpler.shortenDiff(twoLines, fourLines);
-    lib.testDiffs(t, "found too short, wanted long enough",
-        foundPair, { found: twoNumLines, wanted: fourNumLines });
+    lib.testDiffs(t, "found too short, wanted long enough", foundPair, {
+        subject: twoNumLines,
+        model: fourNumLines,
+        numbered: true
+    });
     
     foundPair = crumpler.shortenDiff(fourLines, threeLines);
-    lib.testDiffs(t, "found long enough, wanted too short",
-        foundPair, { found: fourNumLines, wanted: threeNumLines });
+    lib.testDiffs(t, "found long enough, wanted too short", foundPair, {
+        subject: fourNumLines,
+        model: threeNumLines,
+        numbered: true
+    });
     
     foundPair = crumpler.shortenDiff(fourLines, fiveLines);
-    lib.testDiffs(t, "found and wanted both long enough",
-        foundPair, { found: fourNumLines, wanted: fiveNumLines });
+    lib.testDiffs(t, "found and wanted both long enough", foundPair, {
+        subject: fourNumLines,
+        model: fiveNumLines,
+        numbered: true
+    });
     
     t.end();
 });
@@ -55,25 +64,43 @@ t.test("numbering inserted and removed lines", function (t) {
     var numInsertEnd = lib.numberLines(insertEnd);
     
     var foundPair = crumpler.shortenDiff(insertStart, base);
-    lib.testDiffs(t, "inserted start",
-        foundPair, { found: numInsertStart, wanted: numBase });
+    lib.testDiffs(t, "inserted start", foundPair, {
+        subject: numInsertStart,
+        model: numBase,
+        numbered: true
+    });
     foundPair = crumpler.shortenDiff(base, insertStart);
-    lib.testDiffs(t, "removed start",
-        foundPair, { found: numBase, wanted: numInsertStart });
+    lib.testDiffs(t, "removed start", foundPair, {
+        subject: numBase,
+        model: numInsertStart,
+        numbered: true
+    });
 
     foundPair = crumpler.shortenDiff(insertMiddle, base);
-    lib.testDiffs(t, "inserted middle",
-        foundPair, { found: numInsertMiddle, wanted: numBase });
+    lib.testDiffs(t, "inserted middle", foundPair, {
+        subject: numInsertMiddle,
+        model: numBase,
+        numbered: true
+    });
     foundPair = crumpler.shortenDiff(base, insertMiddle);
-    lib.testDiffs(t, "removed middle",
-        foundPair, { found: numBase, wanted: numInsertMiddle });
+    lib.testDiffs(t, "removed middle", foundPair, {
+        subject: numBase,
+        model: numInsertMiddle,
+        numbered: true
+    });
 
     foundPair = crumpler.shortenDiff(insertEnd, base);
-    lib.testDiffs(t, "inserted end",
-        foundPair, { found: numInsertEnd, wanted: numBase });
+    lib.testDiffs(t, "inserted end", foundPair, {
+        subject: numInsertEnd,
+        model: numBase,
+        numbered: true
+    });
     foundPair = crumpler.shortenDiff(base, insertEnd);
-    lib.testDiffs(t, "removed end",
-        foundPair, { found: numBase, wanted: numInsertEnd });
+    lib.testDiffs(t, "removed end", foundPair, {
+        subject: numBase,
+        model: numInsertEnd,
+        numbered: false
+    });
 
     t.end();
 });
@@ -82,7 +109,7 @@ t.test("diff real text", function (t) {
     var crumpler = new Crumpler({
         bracketSize: 1,
         lineNumberPadding: '0',
-        indentCollapsedLines: false
+        indentCollapseEllipses: false
     });
 
     var moby = lib.loadFixture('moby_orig.txt');
@@ -90,8 +117,13 @@ t.test("diff real text", function (t) {
     var mobyWantedOut = lib.loadFixture('moby_wanted.txt');
     var mobyFoundOut = lib.loadFixture('moby_found.txt');
     foundPair = crumpler.shortenDiff(mobyFixedUp, moby, 200);
-    lib.testDiffs(t, "multiple head/tail-collapsed lines, numbered",
-        foundPair, { found: mobyFoundOut, wanted: mobyWantedOut });
+    lib.testDiffs(t, "multiple head/tail-collapsed lines, numbered", foundPair,
+        {
+            subject: mobyFoundOut,
+            model: mobyWantedOut,
+            numbered: true
+        }
+    );
 
     t.end();
 });
