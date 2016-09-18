@@ -42,9 +42,9 @@ The following methods are available. Click the links for more detailed informati
 
 Method | Description
 --- | ---
-[Crumpler.addAsserts(tap)](#Crumpler.addAsserts) | Adds test assertion methods to an instance of tap.
-[crumpler.shortenDiff(subject, model)](#Crumpler+shortenDiff) | Reduces both subject and model text to their differences in accordance with the configuration. Returns an object {subject, model, lineNumberDelim} containing the shortened text.
-[crumpler.shortenText(text, maxLineLength)](#Crumpler+shortenText) | Abbreviates the provided text according to the configuration, truncating lines at `maxLineLength`. Returns the shortened text.
+[*Crumpler*.addAsserts(tap)](#Crumpler.addAsserts) | Adds test assertion methods to an instance of tap.
+[*crumpler*.shortenDiff(subject, model)](#Crumpler+shortenDiff) | Reduces both subject and model text to their differences in accordance with the configuration. Returns an object {subject, model, lineNumberDelim} containing the shortened text.
+[*crumpler*.shortenText(text, maxLineLength)](#Crumpler+shortenText) | Abbreviates the provided text according to the configuration, truncating lines at `maxLineLength`. Returns the shortened text.
 
 The `Crumpler` class is stateless, so the methods of an instance can be used repeatedly or concurrently without concern for interference.
 
@@ -93,7 +93,7 @@ The two texts differ, so the assertion fails. `crumpler` provides the test harne
 
 `crumpler` has numbered the lines, as it does by default. The found and wanted values are virtually identical. Line 8 is different. For context, `crumpler` has collapsed the series of lines preceding line 8 into just its initial and final line, and it has similarly collapsed the series of linese following line 8.
 
-These shortened texts are also ameniable to differencing for even greater focus on just the differences between the copies. Here they are differenced with `subtap`'s `-d` option for interleaving different lines:
+These shortened texts are also ameniable to differencing for even greater focus on just the differences between the copies. Here they are differenced with [`subtap`](https://github.com/jtlapp/subtap)'s `-d` option for interleaving different lines:
 
 ![Moby Dick Chapter 1 diffs](http://josephtlapp.com/elsewhere/crumpler/demo-moby-shrunk-d.png)
 
