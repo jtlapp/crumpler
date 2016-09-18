@@ -42,8 +42,7 @@ The Crumpler class is stateless, so the methods of an instance can be used repea
 ******************************************************************************/
 
 /**
-This reference assumes the module is loaded in the variable `Crumpler`.
-
+@classdesc This reference assumes the module is loaded in the variable `Crumpler`.
 @class Crumpler
 */
 
@@ -56,6 +55,13 @@ This reference assumes the module is loaded in the variable `Crumpler`.
 //   paddingByLength: array of padding strings indexed by padding length
 
 //// CONSTRUCTION /////////////////////////////////////////////////////////////
+
+/**
+ * Create an instance of Crumpler, optionally configured.
+ *
+ * @constructor
+ * @param options An object configured as described in the [configuration section](#configuration).
+ */
 
 function Crumpler(options) {
     if(!(this instanceof Crumpler)) // allow instantiation without "new"

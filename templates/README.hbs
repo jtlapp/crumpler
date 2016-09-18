@@ -42,9 +42,9 @@ The following methods are available. Click the links for more detailed informati
 
 Method | Description
 --- | ---
-Crumpler.addAsserts(tap) | Adds test assertion methods to an instance of tap.
-crumpler.shortenDiff(subject, model) | Reduces both subject and model text to their differences in accordance with the configuration. Returns an object {subject, model, lineNumberDelim} containing the shortened text.
-crumpler.shortenText(text, maxLineLength) | Abbreviates the provided text according to the configuration, truncating lines at `maxLineLength`. Returns the shortened text.
+[Crumpler.addAsserts(tap)](#Crumpler.addAsserts) | Adds test assertion methods to an instance of tap.
+[crumpler.shortenDiff(subject, model)](#Crumpler+shortenDiff) | Reduces both subject and model text to their differences in accordance with the configuration. Returns an object {subject, model, lineNumberDelim} containing the shortened text.
+[crumpler.shortenText(text, maxLineLength)](#Crumpler+shortenText) | Abbreviates the provided text according to the configuration, truncating lines at `maxLineLength`. Returns the shortened text.
 
 The `Crumpler` class is stateless, so the methods of an instance can be used repeatedly or concurrently without concern for interference.
 
@@ -78,7 +78,13 @@ model | Text that is being abbreviated in comparison to a subject for purposes o
 
 ## Configuration
 
-The Crumpler constructor takes an object of configuration options. The following options govern collapsing sequences of lines:
+The Crumpler constructor optionally takes an object of configuration options. If no `options` object is provided, the default configuration pertains.
+
+```js
+var crumpler = new Crumpler(options);
+```
+
+The following options govern collapsing sequences of lines:
 
 Collapse Option | Description
 --- | ---
@@ -99,7 +105,7 @@ The following options provide replacement text for text that is removed by colla
 
 Ellipsis Option | Description
 --- | ---
-- normCollapseEllipsis | One or more lines that replace lines removed in the collapse of text that does not differ from a comparison text. This is the ellipsis for collapsed text that is common to a comparison text or that is not being compared to another text. (default `" ..."`)
+normCollapseEllipsis | One or more lines that replace lines removed in the collapse of text that does not differ from a comparison text. This is the ellipsis for collapsed text that is common to a comparison text or that is not being compared to another text. (default `" ..."`)
 subjectCollapseEllipsis | One or more lines that replace lines removed in the collapse of subject text not found in the model text. (default `"   ..."`)
 modelCollapseEllipsis | One or more lines that replace lines removed in the collapse of model text not found in the subject text. (default `"  ..."`)
 headCropEllipsis | String that replaces characters cropped from the head (start) of a line. (default `"[{n} chars...]"`)

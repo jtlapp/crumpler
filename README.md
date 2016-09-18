@@ -42,9 +42,9 @@ The following methods are available. Click the links for more detailed informati
 
 Method | Description
 --- | ---
-Crumpler.addAsserts(tap) | Adds test assertion methods to an instance of tap.
-crumpler.shortenDiff(subject, model) | Reduces both subject and model text to their differences in accordance with the configuration. Returns an object {subject, model, lineNumberDelim} containing the shortened text.
-crumpler.shortenText(text, maxLineLength) | Abbreviates the provided text according to the configuration, truncating lines at `maxLineLength`. Returns the shortened text.
+[Crumpler.addAsserts(tap)](#Crumpler.addAsserts) | Adds test assertion methods to an instance of tap.
+[crumpler.shortenDiff(subject, model)](#Crumpler+shortenDiff) | Reduces both subject and model text to their differences in accordance with the configuration. Returns an object {subject, model, lineNumberDelim} containing the shortened text.
+[crumpler.shortenText(text, maxLineLength)](#Crumpler+shortenText) | Abbreviates the provided text according to the configuration, truncating lines at `maxLineLength`. Returns the shortened text.
 
 The `Crumpler` class is stateless, so the methods of an instance can be used repeatedly or concurrently without concern for interference.
 
@@ -78,7 +78,13 @@ model | Text that is being abbreviated in comparison to a subject for purposes o
 
 ## Configuration
 
-The Crumpler constructor takes an object of configuration options. The following options govern collapsing sequences of lines:
+The Crumpler constructor optionally takes an object of configuration options. If no `options` object is provided, the default configuration pertains.
+
+```js
+var crumpler = new Crumpler(options);
+```
+
+The following options govern collapsing sequences of lines:
 
 Collapse Option | Description
 --- | ---
@@ -99,7 +105,7 @@ The following options provide replacement text for text that is removed by colla
 
 Ellipsis Option | Description
 --- | ---
-- normCollapseEllipsis | One or more lines that replace lines removed in the collapse of text that does not differ from a comparison text. This is the ellipsis for collapsed text that is common to a comparison text or that is not being compared to another text. (default `" ..."`)
+normCollapseEllipsis | One or more lines that replace lines removed in the collapse of text that does not differ from a comparison text. This is the ellipsis for collapsed text that is common to a comparison text or that is not being compared to another text. (default `" ..."`)
 subjectCollapseEllipsis | One or more lines that replace lines removed in the collapse of subject text not found in the model text. (default `"   ..."`)
 modelCollapseEllipsis | One or more lines that replace lines removed in the collapse of model text not found in the subject text. (default `"  ..."`)
 headCropEllipsis | String that replaces characters cropped from the head (start) of a line. (default `"[{n} chars...]"`)
@@ -119,10 +125,12 @@ lineNumberPadding | The character to use for left-padding line numbers to make t
 lineNumberDelim | Delimeter that follows each line number. May be null or `''` to insert no delimeter. (default `":"`)
 
 ## API Reference
+This reference assumes the module is loaded in the variable `Crumpler`.
+
 
 * [Crumpler](#Crumpler)
 
-    * [new Crumpler()](#new_Crumpler_new)
+    * [new Crumpler(options)](#new_Crumpler_new)
 
     * _instance_
         * [.shortenDiff(subject, model)](#Crumpler+shortenDiff)
@@ -135,8 +143,13 @@ lineNumberDelim | Delimeter that follows each line number. May be null or `''` t
 
 <a name="new_Crumpler_new"></a>
 
-### new Crumpler()
-This reference assumes the module is loaded in the variable `Crumpler`.
+### new Crumpler(options)
+
+| Param | Description |
+| --- | --- |
+| options | An object configured as described in the [configuration section](#configuration). |
+
+Create an instance of Crumpler, optionally configured.
 
 <a name="Crumpler+shortenDiff"></a>
 
