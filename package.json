@@ -1,7 +1,7 @@
 {
   "name": "crumpler",
-  "version": "1.0.0",
-  "description": "tap assertions that shrink lengthy text to just the diffs",
+  "version": "1.0.1",
+  "description": "assertions that reduce text documents to just their differences",
   "main": "crumpler.js",
   "scripts": {
     "test": "tap tests/*.js",
