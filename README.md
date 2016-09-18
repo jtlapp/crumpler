@@ -61,7 +61,43 @@ These assertions are analogous to `tap`'s `t.equal()` and `t.notEqual()` asserti
 
 ## Example
 
-TBD
+[Moby Dick](http://www.gutenberg.org/files/2701/2701-h/2701-h.htm), by Herman Melville, is a long book of long paragraphs, making it ideal testing material. We don't need to tax the hard disk or the CPU for our example, so we'll just use [the first chapter](https://raw.githubusercontent.com/jtlapp/crumpler/master/tests/fixtures/moby_orig.txt). In our example, we change the words "a grasshopper" to "Phidippus mystaceus" in the middle of the chapter and ask `crumpler` to compare our change to the original, reducing both copies to their meaningful differences.
+
+Our example compares the two copies of the chapter from a test assertion:
+
+```js
+var t = require('tap');
+var Crumpler = require('../');
+var lib = require('../tests/lib/library');
+
+Crumpler.addAsserts(t);
+var crumpler = new Crumpler({
+    normBracketSize: 1,
+    diffBracketSize: 0,
+    maxNormLineLength: 180,
+    maxLineDiffLength: 180,
+    sameHeadLengthLimit: 85,
+    sameTailLengthLimit: 65,
+    lineNumberPadding: '0'
+});
+
+var mobyChapter1 = lib.loadFixture('moby_orig.txt');
+var mobyFixedUp = mobyChapter1.replace("a grasshopper", "Phidippus mystaceus");
+
+t.textEqual(mobyChapter1, mobyFixedUp, crumpler);
+```
+
+The two texts differ, so the assertion fails. `crumpler` provides the test harness with shortened versions of both texts, so that the test harness presents the minimally needed information to the user as part of the failure report. In this case, [`tap`](https://github.com/tapjs/node-tap) runs the test, but let's look at the output prettified with [`subtap`](https://github.com/jtlapp/subtap).
+
+![Both copies of Moby Dick Chapter 1, reduced](http://josephtlapp.com/elsewhere/crumpler/demo-moby-shrunk.png)
+
+`crumpler` has numbered the lines, as it does by default. The found and wanted values are virtually identical. Line 8 is different. For context, `crumpler` has collapsed the series of lines preceding line 8 into just its initial and final line, and it has similarly collapsed the series of linese following line 8.
+
+These shortened texts are also ameniable to differencing for even greater focus on just the differences between the copies. Here they are differenced with `subtap`'s `-d` option for interleaving different lines:
+
+![Moby Dick Chapter 1 diffs](http://josephtlapp.com/elsewhere/crumpler/demo-moby-shrunk-d.png)
+
+[`subtap`](https://github.com/jtlapp/subtap) also recognizes the `lineNumberDelim` property, which tells it how to identify line numbers so that it won't treat differences in line numbers as differences in line text.
 
 ## Terminology
 
@@ -201,5 +237,3 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Copyright © 2016 Joseph T. Lapp
-
-

@@ -15,4 +15,5 @@ var crumpler = new Crumpler({
 
 var mobyChapter1 = lib.loadFixture('moby_orig.txt');
 var mobyFixedUp = mobyChapter1.replace("a grasshopper", "Phidippus mystaceus");
+
 t.textEqual(mobyChapter1, mobyFixedUp, crumpler);
