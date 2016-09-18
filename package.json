@@ -1,10 +1,11 @@
 {
   "name": "crumpler",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "tap assertions that shrink lengthy text to just the diffs",
-  "main": "index.js",
+  "main": "crumpler.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tap tests/*.js",
+    "docs": "jsdoc2md --plugin dmd-clear --template templates/README.hbs --src crumpler.js > README.md"
   },
   "repository": {
     "type": "git",
@@ -16,7 +17,9 @@
     "assertions",
     "assert",
     "text",
-    "texts"
+    "texts",
+    "diffs",
+    "diff"
   ],
   "author": {
     "name": "Joe Lapp",
@@ -30,9 +33,11 @@
   "homepage": "https://github.com/jtlapp/crumpler#readme",
   "dependencies": {
     "diff": "^3.0.0",
-    "lodash": "^4.15.0"
+    "lodash": "^4.15.0",
+    "memory-streams": "^0.1.0"
   },
   "devDependencies": {
-    "tap": "^7.0.0"
+    "dmd-clear": "^0.1.2",
+    "tap": "^7.1.2"
   }
 }

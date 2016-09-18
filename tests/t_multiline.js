@@ -10,7 +10,7 @@ t.test("default multiline collapsing", function (t) {
     var crumpler = new Crumpler({
         minNumberedLines: 0
     });
-    
+
     t.equal(crumpler.shortenText(''), '',
         "don't collapse empty line");
         
@@ -22,7 +22,7 @@ t.test("default multiline collapsing", function (t) {
 
     var wanted =
         "First line.\nSecond line.\n"+
-        lib.midLines() +"\n"+
+        lib.normEllipsis() +"\n"+
         "Nineth line.\nTenth line.";
     t.equal(crumpler.shortenText(tenLines), wanted,
         "no trailing LF");
@@ -31,7 +31,7 @@ t.test("default multiline collapsing", function (t) {
         
     t.equal(crumpler.shortenText(lib.subsetLines(tenLines, 6)),
         "First line.\nSecond line.\n"+
-        lib.midLines() +"\n"+
+        lib.normEllipsis() +"\n"+
         "Fifth line.\nSixth line.\n",
         "minimal shortened text of 6 lines");
     
@@ -50,11 +50,11 @@ t.test("custom multiline collapsing", function (t) {
         "too few lines between prospective brackets");
 
     t.equal(crumpler.shortenText(lib.subsetLines(tenLines, 7)),
-        "First line.\n"+ lib.midLines() +"\nSeventh line.\n",
+        "First line.\n"+ lib.normEllipsis() +"\nSeventh line.\n",
         "min lines between prospective brackets");
 
     t.equal(crumpler.shortenText(tenLines),
-        "First line.\n"+ lib.midLines() +"\nTenth line.",
+        "First line.\n"+ lib.normEllipsis() +"\nTenth line.",
         "ten lines bracketed by 1 each side");
 
     t.end();
@@ -92,6 +92,15 @@ t.test("shorten text with replacement collapse", function (t) {
         util.format(wanted, "... skipping 4 lines ..."),
         "custom multiline collapse with count");
     
+    crumpler = new Crumpler({
+        minNumberedLines: 0,
+        normCollapseEllipsis: "...\n  skipping {n} lines\n...",
+        normBracketSize: 3
+    });
+    t.equal(crumpler.shortenText(tenLines),
+        util.format(wanted, "...\n  skipping 4 lines\n..."),
+        "custom multiline collapse, multiline ellipsis with count");
+    
     t.end();
 });
 
@@ -106,30 +115,30 @@ t.test("shorten text with numbering", function (t) {
     
     text = lib.subsetLines(tenLines, 1);
     t.equal(crumpler.shortenText(text), text,
-        "1 line, too few too number, too short to crumple");
+        "1 line, too few too number, too short to collapse");
 
     for (var i = 2; i <= 7; ++i) {
         text = lib.subsetLines(tenLines, i);
         t.equal(crumpler.shortenText(text), lib.numberLines(text, '', ':'),
-            "numbered "+ i +" lines, too short to crumple");
+            "numbered "+ i +" lines, too short to collapse");
     }
 
     t.equal(crumpler.shortenText(lib.subsetLines(tenLines, 8)),
         "1:First line.\n2:Second line.\n3:Third line.\n  "+
-        lib.midLines() +"\n"+
+        lib.normEllipsis() +"\n"+
         "6:Sixth line.\n7:Seventh line.\n8:Eighth line.\n",
-        "minimal shortened text of 8 lines, numbered");
+        "minimal collapsed text of 8 lines, numbered");
         
     t.equal(crumpler.shortenText(tenLines),
         "1:First line.\n2:Second line.\n3:Third line.\n  "+
-        lib.midLines() +"\n"+
+        lib.normEllipsis() +"\n"+
         "8:Eighth line.\n9:Nineth line.\n10:Tenth line.",
-        "10 lines crumpled and numbered without padding");
+        "10 lines collapsed and numbered without padding");
 
     t.end();
 });
 
-t.test("fully shrink real text", function (t) {
+t.test("fully shrink some real text", function (t) {
     var crumpler = new Crumpler({
         normBracketSize: 2,
         lineNumberPadding: '0',
@@ -137,7 +146,7 @@ t.test("fully shrink real text", function (t) {
     });
     var moby = lib.loadFixture('moby_orig.txt');
     var mobyShrunk = lib.loadFixture('moby_shrunk.txt');
-    t.equal(crumpler.shortenText(moby, 200), mobyShrunk,
+    t.equal(crumpler.shortenText(moby, 180), mobyShrunk,
         "Moby Dick Chapter 1");
         
     t.end();

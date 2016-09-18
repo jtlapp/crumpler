@@ -119,63 +119,12 @@ lineNumberPadding | The character to use for left-padding line numbers to make t
 lineNumberDelim | Delimeter that follows each line number. May be null or `''` to insert no delimeter. (default `":"`)
 
 ## API Reference
-
-* [Crumpler](#Crumpler)
-
-    * [new Crumpler()](#new_Crumpler_new)
-
-    * _instance_
-        * [.shortenDiff(subject, model)](#Crumpler+shortenDiff)
-
-        * [.shortenText(text, maxLineLength)](#Crumpler+shortenText)
-
-    * _static_
-        * [.addAsserts(The)](#Crumpler.addAsserts)
-
-
-<a name="new_Crumpler_new"></a>
-
-### new Crumpler()
-This reference assumes the module is loaded in the variable `Crumpler`.
-
-<a name="Crumpler+shortenDiff"></a>
-
-### *crumpler*.shortenDiff(subject, model)
-
-| Param | Description |
-| --- | --- |
-| subject | The subject text string. |
-| model | The model text string. |
-
-Shorten the subject and model text strings to minimal representations that clearly show differences between them. Returns an abbreviated subject string and an abbreviated model string that themselves can be compared using a diffing tool to properly highlight their differences. The method reduces both the number of lines and the lengths of individual lines, according to the configuration. It also numbers the lines in accordance with the configuration.
-
-If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagree on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless the line numbers are removed prior to diffing. This method also returns the line number delimiter it used, if any, for use by the downstream diffing tool to properly handle line numbers.
-
-**Returns**: An object having properties `subject`, `model`, and `lineNumberDelim`. The first two properties are the abbreviated subject and model texts, shortened to optimize comparing their differences. `lineNumberDelim` is either null to indicate that subject and model lines were not numbered or a string providing the delimiter used between each line number and the rest of the line. Collapsed ellipsis lines are not numbered. Subject or model text that is an empty string has no lines and no line numbers.  
-<a name="Crumpler+shortenText"></a>
-
-### *crumpler*.shortenText(text, maxLineLength)
-
-| Param | Description |
-| --- | --- |
-| text | String of one or more lines of text to shorten. |
-| maxLineLength | Maximum characters of a line to include. 0 allows lines of unlimited length. Defaults to the maxNormLineLength option. |
-
-Shorten the provided text in accordance with the configuration. Because the text is not being compared with another text, it shortens as if it were a section of text common to two compared texts.
-
-**Returns**: a String of the text shortened as specified  
-<a name="Crumpler.addAsserts"></a>
-
-### *Crumpler*.addAsserts(The)
-
-| Param | Description |
-| --- | --- |
-| The | instance of the tap module to which to add the assertions. |
-
-Adds test assertion methods to an instance of tap. These assertions call shortenDiff() on their found and wanted values using a provided instance of Crumpler. Each of these assertion methods takes parameters in the form textEqual(found, wanted, crumpler, description, extra). Only the first two parameters are required. The default crumpler is `new Crumpler()`.
-
-When lines are being numbered, these assertion methods attache a `{lineNumbers: true}` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
-
+{{#class name="Crumpler"}}
+{{>body~}}
+{{>member-index~}}
+{{>separator~}}
+{{>members~}}
+{{/class}}
 
 ## LICENSE
 

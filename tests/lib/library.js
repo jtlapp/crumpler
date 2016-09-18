@@ -6,9 +6,9 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 
-exports.endLine = function (count) {
+exports.headEllipsis = function (count) {
     // default line-end collapse
-    return "[..."+ count +" chars]";
+    return "["+ count +" chars...]";
 };
 
 exports.loadFixture = function (filename) {
@@ -16,17 +16,17 @@ exports.loadFixture = function (filename) {
     return fs.readFileSync(filePath, 'utf8');
 };
 
-exports.midLines = function () {
+exports.normEllipsis = function () {
     // default multiline "same" collapse
     return " ...";
 };
 
-exports.midFoundLines = function () {
+exports.subjectEllipsis = function () {
     // default multiline "found" collapse
     return "   ...";
 };
 
-exports.midWantedLines = function () {
+exports.modelEllipsis = function () {
     // default multiline "wanted" collapse
     return "  ...";
 };
@@ -54,6 +54,23 @@ exports.numberLines = function (text, padChar, delim) {
     return newText;
 };
 
+exports.stripNumbering = function (text) {
+    var lines = text.split("\n");
+    var line, matches;
+    for (var i = 0; i < lines.length; ++i) {
+        line = lines[i];
+        matches = line.match(/^ *[0-9]+/);
+        if (matches !== null) {
+            if (line.length == matches[0].length)
+                line = '';
+            else
+                line = line.substr(matches[0].length + 1);
+        }
+        lines[i] = line;
+    }
+    return lines.join("\n");
+};
+
 exports.subst = function (str, offset, newChar) {
     return str.substr(0, offset) + newChar + str.substr(offset + 1);
 };
@@ -64,12 +81,19 @@ exports.subsetLines = function (text, lineCount) {
     return matches[0];
 };
 
+exports.tailEllipsis = function (count) {
+    // default line-end collapse
+    return "[..."+ count +" chars]";
+};
+
 exports.testDiffs = function (t, testName, foundPair, wantedPair) {
     t.test(testName, function (t) {
         t.equal(foundPair.subject, wantedPair.subject,
             "collapsed subject");
         t.equal(foundPair.model, wantedPair.model,
             "collapsed model");
+        t.equal(foundPair.lineNumberDelim, wantedPair.lineNumberDelim,
+            "lineNumberDelim");
         t.end();
     });
 };

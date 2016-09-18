@@ -28,61 +28,24 @@ This class defines the following terms:
   "subject" - Text that is being abbreviated, possibly in comparison to a model for purposes of retaining differences with the model in the abbreviation.
   "model" - Text that is being abbreviated in comparison to a subject for purposes of retaining differences with the subject in the abbreviation.
   
-Crumpler is also able to number the lines in the abbreviated text with the line numbers of the original text.
+Crumpler is also able to number the lines in the abbreviated text with the line numbers of the original text. Empty strings are treated as having no lines.
 
 Crumpler.addAsserts() extends an instance of 'tap' with test assertions for using Crumpler to compare two strings of text. When numbering lines, these assertions append a lineNumbers extra flag to inform downstream TAP consumers that line numbers are present. For example, this flag informs subtap to render differences between the texts other than differences in line numbers.
+
+See Crumpler on github for an explanation of the configuration options:
+https://github.com/jtlapp/crumpler
 
 See the tap test harness at (http://www.node-tap.org/).
 See the subtap test runner at (https://github.com/jtlapp/subtap).
 
-----
-
-The Crumpler constructor takes an object of configuration options. The following options govern collapsing sequences of lines:
-
-- normBracketSize: Number of lines to show on each side of a collapsed sequence of lines that does not differ from a comparison text. This is the number of lines in a bracket of text that is common to a comparison text or that is not being compared to another text. Set to 0 to turn off collapsing in these cases. The shortenLines() method ignores this options because it does not collapse text. (default 2)
-
-- diffBracketSize: Number of lines to show on each side of a collapsed sequence of lines that differs from a comparison text. Set to 0 to disable the collapsing of text that differs from the comparison text. (default 0)
-
-- minCollapsedLines: Minimum number of lines that can be removed from a sequence of lines to collapse it. In order for text to collapse it must have at least this number of lines plus twice the applicable bracket size. Must be > 0. (default 2)
-
-The following options govern line cropping:
-
-- maxNormLineLength: The maximum number of characters to show from each line of a sequence of lines that does not differ from a comparison text. This the maximum length of a line that is common to a comparison text or that is not being compared to another text. Set to 0 to show the entire line in these cases. Methods that have a maxLineLength parameter employ maxLineLength in place of the configured maxNormLineLength. (default 0)
-
-- maxDiffLineLength: The maximum number of characters to show from each line of a sequence of lines that differs from a comparison text. Must be greater than sameHeadLengthLimit to be sure that at least some differing characters show. Set to 0 to show differing lines in their entirety. (default 0)
-
-- sameHeadLengthLimit: The limited number of characters of a line to show before the first character of the line that differs from a comparison text. These characters are common to a line in both subject and model texts and provide preceding context for the characters that differ. Prior characters are cropped and replaced with headCropEllipsis, but only if the crop would exceed the length of the replacement. If maxDiffLineLength is non-zero and the remainder of the line fits in fewer characters, additional preceding characters are shown until either the entire line is shown or maxDiffLineLength characters are shown. Set to 0 to never show preceeding characters. Set to -1 to always show all preceding characters. Must be less than maxDiffLineLength. (default -1)
-
-- sameTailLengthLimit: The limited number of characters of a line to show after the last character of the line that differs from a comparison text. These characters are common to a line in both subject and model texts and provide following context for the characters that differ. Subsequent characters are cropped and replaced with tailCropEllipsis, but only if the crop would exceed the length of the replacement. A non-zero maxDiffLineLength may shorten the number of following characters shown or even prevent following characters from being shown. Set to 0 to never show following characters. Set to -1 to always show all following characters. (default -1)
-
-The following options provide replacement text for text that is removed by collapsing or cropping. Their values may optionally contain "{n}". Within the collapse ellipses, "{n}" is a placeholder for the number of lines removed. Within the crop ellipses, "{n}" is a placeholder for the number of characters removed. By making minCollapsedLines >= 2, the collapse ellipses language can assume a plurality. Because crops never replace fewer characters than their lengths, the crop ellipses language can assume a plurality by ensuring that headCropEllipsis and tailCropEllipsis always contain at least two characters.
-
-- normCollapseEllipsis: One or more lines that replace lines removed in the collapse of text that does not differ from a comparison text. This is the ellipsis for collapsed text that is common to a comparison text or that is not being compared to another text. (default " ...")
-
-- subjectCollapseEllipsis: One or more lines that replace lines removed in the collapse of subject text not found in the model text. (default "   ...")
-
-- modelCollapseEllipsis: One or more lines that replace lines removed in the collapse of model text not found in the subject text. (default "  ...")
-
-- headCropEllipsis: String that replaces characters cropped from the head (start) of a line. (default "[{n} chars...]")
-
-- tailCropEllipsis: String that replaces characters cropped from the tail (end) of a line. (default "[...{n} chars]")
-
-- indentCollapseEllipses: When true and lines are being numbered, each line of a collapse ellipsis is indented by a number of spaces equal to the offset endured by the immediately prior line due to line numbering. The immediately prior line is the last line of the preceding bracket. The indentation includes the padded width of the line number and the length of lineNumberDelim. (default false)
-
-Any of these ellipses may be blank, but only collapse ellipses may contain LFs ("\n"). A blank collapse ellipsis produces a blank line, while a blank crop ellipsis abruptly truncates the line. A trailing LF of a collapse ellipsis produces a trailing blank line.
-  
-The collapse ellipses need not all be different, but they should all be different. Making them distinct from one another helps downstream tools that diff the collapsed strings to properly recognize differences. These tools may otherwise assume that collapse ellipses all represent identical lines.
-
-The following options govern line numbering. Line numbering is useful both for mapping lines in abbreviated text to the original text and for readily observing the lengths of collapsed text.
-
-- minNumberedLines: Minimum number of lines that a text must have in order for line numbers to be added to the abbreviated text. 0 disables line numbering. When comparing subject and model texts, the lines of both abbreviated texts are numbered if either text exceeds this minimum line count. (default 2)
-
-- lineNumberPadding: The character to use for left-padding line numbers to make them all occupy the same character width. When comparing subject and model texts, line numbers are padded to the greater of their width requirements. Set to null or '' to disable left-padding. (default null)
-
-- lineNumberDelim: Delimeter that follows each line number. May be null or '' to insert no delimeter. (default ":")
-
 The Crumpler class is stateless, so the methods of an instance can be used repeatedly or concurrently without concern for interference.
 ******************************************************************************/
+
+/**
+This reference assumes the module is loaded in the variable `Crumpler`.
+
+@class Crumpler
+*/
 
 //// CONFIGURATION ////////////////////////////////////////////////////////////
 
@@ -109,8 +72,8 @@ function Crumpler(options) {
         throw new Error("minCollapsedLines must be >= 1");
     if (_.isUndefined(options.maxNormLineLength))
         options.maxNormLineLength = 0;
-    if (_.isUndefined(options.maxDiffLineLength))
-        options.maxDiffLineLength = 0;
+    if (_.isUndefined(options.maxLineDiffLength))
+        options.maxLineDiffLength = 0;
     if (_.isUndefined(options.sameHeadLengthLimit))
         options.sameHeadLengthLimit = -1;
     if (_.isUndefined(options.sameTailLengthLimit))
@@ -138,12 +101,9 @@ function Crumpler(options) {
     else if (_.isUndefined(options.lineNumberDelim))
         options.lineNumberDelim = ':';
         
-    if (options.sameHeadLengthLimit >= options.maxDiffLineLength)
-        throw new Error("sameHeadLengthLimit must be < maxDiffLineLength");
-        
     var config = {};
-    config.headInfo = Extent.getCollapseInfo(options.headCropEllipsis);
-    config.tailInfo = Extent.getCollapseInfo(options.tailCropEllipsis);
+    config.headInfo = Extent.getCropInfo(options.headCropEllipsis);
+    config.tailInfo = Extent.getCropInfo(options.tailCropEllipsis);
         
     config.paddingByWidth = [];
     var padding = options.lineNumberPadding;
@@ -161,13 +121,13 @@ module.exports = Crumpler;
 //// PUBLIC METHODS ///////////////////////////////////////////////////////////
 
 /**
- * Shorten the subject and model text strings to minimal representations that clearly show differences between them. Returns a collapsed subject value and a collapsed model value that themselves can be compared using a diffing tool to properly highlight their differences. The method reduces both the number of lines and the lengths of individual lines, according to the configuration. It also numbers the lines in accordance with the configuration.
+ * Shorten the subject and model text strings to minimal representations that clearly show differences between them. Returns an abbreviated subject string and an abbreviated model string that themselves can be compared using a diffing tool to properly highlight their differences. The method reduces both the number of lines and the lengths of individual lines, according to the configuration. It also numbers the lines in accordance with the configuration.
  *
- * If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagree on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless they are removed prior to diffing.
+ * If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagree on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless the line numbers are removed prior to diffing. This method also returns the line number delimiter it used, if any, for use by the downstream diffing tool to properly handle line numbers.
  *
  * @param subject The subject text string.
  * @param model The model text string.
- * @returns An object {subject, model, numbered} containing the abbreviated subject and model texts, shortened to optimize comparing their differences. It also contains a boolean indicating whether the subject and model texts were numbered.
+ * @returns An object having properties `subject`, `model`, and `lineNumberDelim`. The first two properties are the abbreviated subject and model texts, shortened to optimize comparing their differences. `lineNumberDelim` is either null to indicate that subject and model lines were not numbered or a string providing the delimiter used between each line number and the rest of the line. Collapsed ellipsis lines are not numbered. Subject or model text that is an empty string has no lines and no line numbers.
  */
 
 Crumpler.prototype.shortenDiff = function (subject, model)
@@ -175,8 +135,8 @@ Crumpler.prototype.shortenDiff = function (subject, model)
     if (typeof model !== 'string')
         throw new Error("model value must be a string");
         
-    // If there are no diffs, short-circuit returning identically
-    // shortened values.
+    // If there are no diffs, short-circuit all the work by returning
+    // identically shortened values.
     
     if (subject === model) {
         var shrunk = this._shorten(model, this.opts.maxNormLineLength,
@@ -234,12 +194,12 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         numberingLines, padWidth
     );
     var subjectExtent = new Extent(
-        this.opts, this.config, this.opts.maxDiffLineLength,
+        this.opts, this.config, this.opts.maxLineDiffLength,
         this.opts.diffBracketSize, this.opts.subjectCollapseEllipsis,
         numberingLines, padWidth
     );
     var modelExtent = new Extent(
-        this.opts, this.config, this.opts.maxDiffLineLength,
+        this.opts, this.config, this.opts.maxLineDiffLength,
         this.opts.diffBracketSize, this.opts.modelCollapseEllipsis,
         numberingLines, padWidth
     );
@@ -251,8 +211,8 @@ Crumpler.prototype.shortenDiff = function (subject, model)
     var modelLines = []; // model lines collected from deltas
     var subjectLineNumber = 1;
     var modelLineNumber = 1;
-    var lineDiffOffset = 0; // offset to first diff in adjacent subject/model
-    var delta, deltaLines, extent, deltaLinesCopy;
+    var diffInfo = null; // offset and lengths of diffs between lines
+    var delta, deltaLines, extent, deltaLinesCopy, diffInfo;
     
     for (var i = 0; i < deltas.length; ++i) {
         delta = deltas[i];
@@ -261,15 +221,17 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         // handle a sequence of lines removed from the model value
         
         if (delta.removed) {
-            lineDiffOffset = 0;
+            diffInfo = null; // resume assumption of no differences
             if (i + 1 < deltas.length && deltas[i + 1].added) {
                 // offset guaranteed to be within the first line of value
-                lineDiffOffset =
-                        firstDiffIndex(delta.value, deltas[i + 1].value);
+                diffInfo = getDiffInfo(
+                        deltas[i + 1].value.match(/[^\n]*/)[0], deltaLines[0]);
             }
-            modelExtent.shorten(deltaLines, modelLineNumber, lineDiffOffset);
+            modelExtent.shorten(deltaLines, modelLineNumber,
+                    (diffInfo ? diffInfo.diffIndex : 0),
+                    (diffInfo ? diffInfo.modelDiffLength : 0));
             deltaLines.forEach(function (line) {
-                modelLines.push(line); // Array::concat() seems wasteful
+                modelLines.push(line); // Array::concat() seems wasteful here
             });
             modelLineNumber += delta.count;
         }
@@ -278,9 +240,10 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         
         else if (delta.added) {
             subjectExtent.shorten(deltaLines, subjectLineNumber,
-                    lineDiffOffset);
+                    (diffInfo ? diffInfo.diffIndex : 0),
+                    (diffInfo ? diffInfo.subjectDiffLength : 0));
             deltaLines.forEach(function (line) {
-                subjectLines.push(line); // Array::concat() seems wasteful
+                subjectLines.push(line);
             });
             subjectLineNumber += delta.count;
         }
@@ -289,19 +252,19 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         
         else {
             if (subjectLineNumber === modelLineNumber) {
-                normExtent.shorten(deltaLines, subjectLineNumber, 0);
+                normExtent.shorten(deltaLines, subjectLineNumber, -1);
                 deltaLines.forEach(function (line) {
-                    modelLines.push(line); // Array::concat() seems wasteful
+                    modelLines.push(line);
                     subjectLines.push(line);
                 });
             }
             else {
                 deltaLinesCopy = deltaLines.slice(0);
-                normExtent.shorten(deltaLines, modelLineNumber, 0);
+                normExtent.shorten(deltaLines, modelLineNumber, -1);
                 deltaLines.forEach(function (line) {
-                    modelLines.push(line); // Array::concat() seems wasteful
+                    modelLines.push(line);
                 });
-                normExtent.shorten(deltaLinesCopy, subjectLineNumber, 0);
+                normExtent.shorten(deltaLinesCopy, subjectLineNumber, -1);
                 deltaLinesCopy.forEach(function (line) {
                     subjectLines.push(line);
                 });
@@ -317,26 +280,12 @@ Crumpler.prototype.shortenDiff = function (subject, model)
     return {
         subject: toTextWithOptionalLF(subjectLines, subject),
         model: toTextWithOptionalLF(modelLines, model),
-        numbered: numberingLines
+        lineNumberDelim: (numberingLines ? this.opts.lineNumberDelim : null)
     };
 };
 
 /**
- * Shorten the individual lines of the text without removing any lines. Lines longer than the maximum length are collapsed at the ends as configured. Also number the lines according to the configuration.
- *
- * @param text String containing one or more lines to shorten. LFs ("\n") are assumed to delimit lines, so a trailing LF indicates a blank line.
- * @param maxLineLength Maximum characters of a line to include. 0 allows lines of unlimited length. Defaults to the maxNormLineLength option.
- * @returns a String of the text with lines shortened as specified
- */
-
-Crumpler.prototype.shortenLines = function (text, maxLineLength) {
-    if (_.isUndefined(maxLineLength))
-        maxLineLength = this.opts.maxNormLineLength;
-    return this._shorten(text, maxLineLength, 0).subject;
-};
-
-/**
- * Shorten the entire text, both reducing the number of lines and the lengths of the individual lines, according to the configuration. Also number the lines according to the configuration. Collapses sequences of lines as well as the ends of lines that exceed the indicated maximum line length.
+ * Shorten the provided text in accordance with the configuration. Because the text is not being compared with another text, it shortens as if it were a section of text common to two compared texts.
  *
  * @param text String of one or more lines of text to shorten.
  * @param maxLineLength Maximum characters of a line to include. 0 allows lines of unlimited length. Defaults to the maxNormLineLength option.
@@ -367,25 +316,26 @@ Crumpler.prototype._shorten = function (text, maxLineLength, bracketSize)
             bracketSize, this.opts.normCollapseEllipsis,
             numberingLines, Extent.digitCount(lines.length)
         );
-    if (bracketSize === 0)
-        extent.shortenLines(lines, 0, 1, lines.length, 0);
-    else
-        extent.shortenText(lines, 1, 0);
+    extent.shorten(lines, 1, -1);
     return {
         subject: toTextWithOptionalLF(lines, text),
-        numbered: numberingLines
+        lineNumberDelim: (numberingLines ? this.opts.lineNumberDelim : null)
     };
 };
 
 //// CLASS METHODS ////////////////////////////////////////////////////////////
 
 /**
- * Adds assertions to an instance of tap that call shortenDiff() on subject and model values for a provided instance of Crumpler. When lines are being numbered, attaches a { lineNumbers: true } option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
+ * Adds test assertion methods to an instance of tap. These assertions call shortenDiff() on their found and wanted values using a provided instance of Crumpler. Each of these assertion methods takes parameters in the form textEqual(found, wanted, crumpler, description, extra). Only the first two parameters are required. The default crumpler is `new Crumpler()`.
+ *
+ * When lines are being numbered, these assertion methods attache a `{lineNumbers: true}` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
  *
  * @param The instance of the tap module to which to add the assertions.
  */
 
 Crumpler.addAsserts = function (tap) {
+    // I opted for 'textEqual' forms instead of 'equalText' forms to help
+    // prevent people from typing invalid forms such as 'equalStrict'.
     tap.Test.prototype.addAssert('textEqual', 3, textEqual);
     tap.Test.prototype.addAssert('textEquals', 3, textEqual);
     tap.Test.prototype.addAssert('textInequal', 3, textNotEqual);
@@ -398,36 +348,63 @@ Crumpler.addAsserts = function (tap) {
 var DEFAULT_CRUMPLER = new Crumpler();
 
 function textEqual(found, wanted, crumpler, message, extra) {
+    if (typeof crumpler === 'string') {
+        extra = message;
+        message = crumpler;
+        crumpler = null;
+    }
     crumpler = crumpler || DEFAULT_CRUMPLER;
     message = message || "text should be identical";
     extra = extra || {};
-    var shrunk = crumpler.textDiff(found, wanted);
-    if (shrunk.numbered)
-        extra.lineNumbers = true;
+    var shrunk = crumpler.shortenDiff(found, wanted);
+    if (shrunk.lineNumberDelim !== null)
+        extra.lineNumberDelim = shrunk.lineNumberDelim;
     return this.equal(shrunk.subject, shrunk.model, message, extra);
 }
 
 function textNotEqual(found, notWanted, crumpler, message, extra) {
+    if (typeof crumpler === 'string') {
+        extra = message;
+        message = crumpler;
+        crumpler = null;
+    }
     crumpler = crumpler || DEFAULT_CRUMPLER;
     message = message || "text should be different";
     extra = extra || {};
-    var shrunk = crumpler.textDiff(found, notWanted);
-    if (shrunk.numbered)
-        extra.lineNumbers = true;
+    var shrunk = crumpler.shortenDiff(found, notWanted);
+    if (shrunk.lineNumberDelim !== null)
+        extra.lineNumberDelim = shrunk.lineNumberDelim;
     return this.notEqual(shrunk.subject, shrunk.model, message, extra);
 }
 
 //// SUPPORT FUNCTIONS ////////////////////////////////////////////////////////
 
-function firstDiffIndex(subject, model) {
+function getDiffInfo(subjectLine, modelLine) {
     // assumes that there is a difference
-    var baseLength = subject.length;
-    if (baseLength > model.length)
-        baseLength = model.length;
-    var i = 0;
-    while (i < baseLength && subject[i] === model[i])
-        ++i;
-    return i;
+    
+    var baseLength = subjectLine.length;
+    if (baseLength > modelLine.length)
+        baseLength = modelLine.length;
+    var diffIndex = 0;
+    while (diffIndex < baseLength &&
+            subjectLine[diffIndex] === modelLine[diffIndex])
+        ++diffIndex;
+
+    var subjectIndex = subjectLine.length;
+    var modelIndex = modelLine.length;    
+    while (subjectIndex > diffIndex && modelIndex > diffIndex &&
+            subjectLine[--subjectIndex] === modelLine[--modelIndex])
+        ;
+    if (subjectIndex > diffIndex && modelIndex > diffIndex) {
+        ++subjectIndex;
+        ++modelIndex;
+    }
+        
+    return {
+        diffIndex: diffIndex,
+        subjectDiffLength: subjectIndex - diffIndex,
+        modelDiffLength: modelIndex - diffIndex
+    };
 }
 
 function toLinesWithOptionalLF(text) {
