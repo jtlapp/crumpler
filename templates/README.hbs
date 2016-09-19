@@ -142,8 +142,8 @@ The following options provide replacement text for text that is removed by colla
 Ellipsis Option | Description
 --- | ---
 normCollapseEllipsis | One or more lines that replace lines removed in the collapse of text that does not differ from a comparison text. This is the ellipsis for collapsed text that is common to a comparison text or that is not being compared to another text. (default `" ..."`)
-subjectCollapseEllipsis | One or more lines that replace lines removed in the collapse of subject text not found in the model text. (default `"   ..."`)
-modelCollapseEllipsis | One or more lines that replace lines removed in the collapse of model text not found in the subject text. (default `"  ..."`)
+subjectCollapseEllipsis | One or more lines that replace lines removed in the collapse of subject text not found in the model text. (default `" &nbsp;&nbsp;..."`)
+modelCollapseEllipsis | One or more lines that replace lines removed in the collapse of model text not found in the subject text. (default `" &nbsp;..."`)
 headCropEllipsis | String that replaces characters cropped from the head (start) of a line. (default `"[{n} chars...]"`)
 tailCropEllipsis | String that replaces characters cropped from the tail (end) of a line. (default `"[...{n} chars]"`)
 indentCollapseEllipses | When true and lines are being numbered, each line of a collapse ellipsis is indented by a number of spaces equal to the offset endured by the immediately prior line due to line numbering. The immediately prior line is the last line of the preceding bracket. The indentation includes the padded width of the line number and the length of lineNumberDelim. (default false)
