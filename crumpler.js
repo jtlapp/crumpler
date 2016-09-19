@@ -336,7 +336,7 @@ Crumpler.prototype._shorten = function (text, maxLineLength, bracketSize)
  *
  * When lines are being numbered, these assertion methods attache a `{lineNumbers: true}` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
  *
- * @param The instance of the tap module to which to add the assertions.
+ * @param tap The instance of the tap module to which to add the assertions.
  */
 
 Crumpler.addAsserts = function (tap) {

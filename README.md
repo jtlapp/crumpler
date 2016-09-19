@@ -174,7 +174,7 @@ This reference assumes the module is loaded in the variable `Crumpler`.
         * [.shortenText(text, maxLineLength)](#Crumpler+shortenText)
 
     * _static_
-        * [.addAsserts(The)](#Crumpler.addAsserts)
+        * [.addAsserts(tap)](#Crumpler.addAsserts)
 
 
 <a name="new_Crumpler_new"></a>
@@ -215,11 +215,11 @@ Shorten the provided text in accordance with the configuration. Because the text
 **Returns**: a String of the text shortened as specified  
 <a name="Crumpler.addAsserts"></a>
 
-### *Crumpler*.addAsserts(The)
+### *Crumpler*.addAsserts(tap)
 
 | Param | Description |
 | --- | --- |
-| The | instance of the tap module to which to add the assertions. |
+| tap | The instance of the tap module to which to add the assertions. |
 
 Adds test assertion methods to an instance of tap. These assertions call shortenDiff() on their found and wanted values using a provided instance of Crumpler. Each of these assertion methods takes parameters in the form textEqual(found, wanted, crumpler, description, extra). Only the first two parameters are required. The default crumpler is `new Crumpler()`.
 
