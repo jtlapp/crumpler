@@ -61,8 +61,6 @@ t.textNotEqual(f,w,c,m,e) | Same as `t.textInequal(f,w,c,m,e)`.
 
 These assertions are analogous to `tap`'s `t.equal()` and `t.notEqual()` assertions, as explained at [node-tap.org](http://www.node-tap.org/asserts/), except that they also take a `Crumpler` instance for configuration.
 
-**Note:** The `sectionTitleRegex` feature is untested. After implementing it, I decided I wanted to test each section separately instead of testing across all sections and having `crumpler` report the title of the tested section in the diffs. If this feature interests you, I'd love a test suite for it.
-
 ## Example
 
 [Moby Dick](http://www.gutenberg.org/files/2701/2701-h/2701-h.htm), by Herman Melville, is a long book of long paragraphs, making it ideal testing material. We don't need to tax the hard disk or the CPU for our example, so we'll just use [the first chapter](https://raw.githubusercontent.com/jtlapp/crumpler/master/tests/fixtures/moby_orig.txt). In our example, we change the words "a grasshopper" to "Phidippus mystaceus" in the middle of the chapter and ask `crumpler` to compare our change to the original, reducing both copies to their meaningful differences.
@@ -170,6 +168,8 @@ Section Title Option | Description
 --- | ---
 sectionTitleRegex | This regular expression matches lines that contain section titles. If there are no capture groups, the entire line is used as the title. Otherwise, the outermost capture group extracts the title. `null` when there are no section titles or when you don't wish to output them. (default `null`)
 sectionTitlePrefix | This prefix precedes the section title on lines output to show where a subsequent difference is found. (default `<#> `)
+
+**Note:** The section title options are untested. After implementing them, I decided I wanted to test each section separately instead of testing across all sections and having `crumpler` report the title of the tested section in the diffs. If this feature interests you, I'd love a test suite for it.
 
 ### Line Numbering Options
 
