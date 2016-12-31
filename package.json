@@ -1,11 +1,11 @@
 {
   "name": "crumpler",
-  "version": "1.0.1",
-  "description": "assertions that reduce text documents to just their differences",
+  "version": "1.2.0",
+  "description": "assertions that reduce text/logs to just their differences",
   "main": "crumpler.js",
   "scripts": {
     "test": "tap tests/*.js",
-    "docs": "jsdoc2md --plugin dmd-clear --template templates/README.hbs --src crumpler.js > README.md"
+    "docs": "jsdoc2md --plugin dmd-clear --template templates/README.hbs --files crumpler.js > README.md"
   },
   "repository": {
     "type": "git",
@@ -19,7 +19,8 @@
     "text",
     "texts",
     "diffs",
-    "diff"
+    "diff",
+    "logs"
   ],
   "author": {
     "name": "Joe Lapp",

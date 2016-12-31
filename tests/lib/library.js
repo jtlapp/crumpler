@@ -87,13 +87,24 @@ exports.tailEllipsis = function (count) {
 };
 
 exports.testDiffs = function (t, testName, foundPair, wantedPair) {
+    exports.normalizeResults(foundPair);
+    exports.normalizeResults(wantedPair);
     t.test(testName, function (t) {
         t.equal(foundPair.subject, wantedPair.subject,
             "collapsed subject");
         t.equal(foundPair.model, wantedPair.model,
             "collapsed model");
+        t.equal(foundPair.sectionTitlePrefix, wantedPair.sectionTitlePrefix,
+            "sectionTitlePrefix");
         t.equal(foundPair.lineNumberDelim, wantedPair.lineNumberDelim,
             "lineNumberDelim");
         t.end();
     });
+};
+
+exports.normalizeResults = function (resultPair) {
+    if (_.isUndefined(resultPair.lineNumberDelim))
+        resultPair.lineNumberDelim = null;
+    if (_.isUndefined(resultPair.sectionTitlePrefix))
+        resultPair.sectionTitlePrefix = null;
 };

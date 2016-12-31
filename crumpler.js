@@ -30,7 +30,7 @@ This class defines the following terms:
   
 Crumpler is also able to number the lines in the abbreviated text with the line numbers of the original text. Empty strings are treated as having no lines.
 
-Crumpler.addAsserts() extends an instance of 'tap' with test assertions for using Crumpler to compare two strings of text. When numbering lines, these assertions append a lineNumbers extra flag to inform downstream TAP consumers that line numbers are present. For example, this flag informs subtap to render differences between the texts other than differences in line numbers.
+Crumpler.addAsserts() extends an instance of 'tap' with test assertions for using Crumpler to compare two strings of text. When inserting section titles, these assertions append a sectionTitlePrefix extra option to allow for their identification as section titles rather than differenced text. When numbering lines, these assertions append a lineNumberDelim extra option to inform downstream TAP consumers that line numbers are present and how they are delimited from the rest of the line. For example, this option informs subtap to render differences between the texts other than differences in line numbers.
 
 See Crumpler on github for an explanation of the configuration options:
 https://github.com/jtlapp/crumpler
@@ -96,6 +96,12 @@ function Crumpler(options) {
         options.tailCropEllipsis = DEFAULT_TAIL_CROP_ELLIPSIS;
     if (_.isUndefined(options.indentCollapseEllipses))
         options.indentCollapseEllipses = false;
+    if (_.isUndefined(options.sectionTitleRegex))
+        options.sectionTitleRegex = null;
+    if (_.isUndefined(options.sectionTitlePrefix))
+        options.sectionTitlePrefix = null;
+    else if (options.sectionTitlePrefix === '')
+        options.sectionTitlePrefix = null;
     if (_.isUndefined(options.minNumberedLines))
         options.minNumberedLines = 2;
     if (_.isUndefined(options.lineNumberPadding))
@@ -129,11 +135,13 @@ module.exports = Crumpler;
 /**
  * Shorten the subject and model text strings to minimal representations that clearly show differences between them. Returns an abbreviated subject string and an abbreviated model string that themselves can be compared using a diffing tool to properly highlight their differences. The method reduces both the number of lines and the lengths of individual lines, according to the configuration. It also numbers the lines in accordance with the configuration.
  *
+ * If section titles are being output to the shortened text to show the context of differences, a diffing tool that subsequently compares the values will have to be smart enough to ignore the section titles. This method also returns the prefix for section title lines, if any, for use by the downstream diffing tool to properly handle section titles.
+ *
  * If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagree on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless the line numbers are removed prior to diffing. This method also returns the line number delimiter it used, if any, for use by the downstream diffing tool to properly handle line numbers.
  *
  * @param subject The subject text string.
  * @param model The model text string.
- * @returns An object having properties `subject`, `model`, and `lineNumberDelim`. The first two properties are the abbreviated subject and model texts, shortened to optimize comparing their differences. `lineNumberDelim` is either null to indicate that subject and model lines were not numbered or a string providing the delimiter used between each line number and the rest of the line. Collapsed ellipsis lines are not numbered. Subject or model text that is an empty string has no lines and no line numbers.
+ * @returns An object having properties `subject`, `model`, `sectionTitlePrefix`, and `lineNumberDelim`. The first two properties are the abbreviated subject and model texts, shortened to optimize comparing their differences. `sectionTitlePrefix` is either null or a string that marks the start of each line that presents a section title for a subsequent difference. `lineNumberDelim` is either null to indicate that subject and model lines were not numbered or a string providing the delimiter used between each line number and the rest of the line. Collapsed ellipsis lines are not numbered. Subject or model text that is an empty string has no lines and no line numbers.
  */
 
 Crumpler.prototype.shortenDiff = function (subject, model)
@@ -217,6 +225,14 @@ Crumpler.prototype.shortenDiff = function (subject, model)
     var modelLines = []; // model lines collected from deltas
     var subjectLineNumber = 1;
     var modelLineNumber = 1;
+    var subjectSectionTitle = {
+        current: null,
+        prior: null
+    };
+    var modelSectionTitle = {
+        current: null,
+        prior: null
+    };
     var diffInfo = null; // offset and lengths of diffs between lines
     var delta, deltaLines, extent, deltaLinesCopy, diffInfo;
     
@@ -227,6 +243,7 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         // handle a sequence of lines removed from the model value
         
         if (delta.removed) {
+            this._updateSectionTitle(modelSectionTitle, modelLines);
             diffInfo = null; // resume assumption of no differences
             if (i + 1 < deltas.length && deltas[i + 1].added) {
                 // offset guaranteed to be within the first line of value
@@ -245,6 +262,7 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         // handle a sequence of lines added to the subject value
         
         else if (delta.added) {
+            this._updateSectionTitle(subjectSectionTitle, subjectLines);
             subjectExtent.shorten(deltaLines, subjectLineNumber,
                     (diffInfo ? diffInfo.diffIndex : 0),
                     (diffInfo ? diffInfo.subjectDiffLength : 0));
@@ -257,6 +275,8 @@ Crumpler.prototype.shortenDiff = function (subject, model)
         // handle a sequence of lines common to both subject and model
         
         else {
+            this._updateSectionTitle(subjectSectionTitle, subjectLines);
+            this._updateSectionTitle(modelSectionTitle, modelLines);
             if (subjectLineNumber === modelLineNumber) {
                 normExtent.shorten(deltaLines, subjectLineNumber, -1);
                 deltaLines.forEach(function (line) {
@@ -283,11 +303,15 @@ Crumpler.prototype.shortenDiff = function (subject, model)
     // Construct the collapsed subject and model values, mimicking any
     // trailing LF of the corresponding originally-provided value.
     
-    return {
+    var diffs = {
         subject: toTextWithOptionalLF(subjectLines, subject),
-        model: toTextWithOptionalLF(modelLines, model),
-        lineNumberDelim: (numberingLines ? this.opts.lineNumberDelim : null)
+        model: toTextWithOptionalLF(modelLines, model)
     };
+    if (numberingLines)
+        diffs.lineNumberDelim = this.opts.lineNumberDelim;
+    if (this.opts.sectionTitleRegex)
+        diffs.sectionTitlePrefix = this.opts.sectionTitlePrefix;
+    return diffs;
 };
 
 /**
@@ -307,7 +331,8 @@ Crumpler.prototype.shortenText = function (text, maxLineLength) {
 
 //// PRIVATE METHODS //////////////////////////////////////////////////////////
 
-Crumpler.prototype._isNumberingLines = function (lineCount) {
+Crumpler.prototype._isNumberingLines = function (lineCount)
+{
     if (this.opts.minNumberedLines === 0)
         return false;
     return (lineCount >= this.opts.minNumberedLines);
@@ -323,18 +348,37 @@ Crumpler.prototype._shorten = function (text, maxLineLength, bracketSize)
             numberingLines, Extent.digitCount(lines.length)
         );
     extent.shorten(lines, 1, -1);
-    return {
-        subject: toTextWithOptionalLF(lines, text),
-        lineNumberDelim: (numberingLines ? this.opts.lineNumberDelim : null)
-    };
+    var result = { subject: toTextWithOptionalLF(lines, text) };
+    if (numberingLines)
+        result.lineNumberDelim = this.opts.lineNumberDelim;
+    return result;
 };
+
+Crumpler.prototype._updateSectionTitle = function (lines, sectionTitle)
+{
+    if (this.opts.sectionTitleRegex === null)
+        return null;
+    if (sectionTitle.current !== sectionTitle.prior) {
+        lines.push(this.opts.sectionTitlePrefix + sectionTitle.current);
+        sectionTitle.prior = sectionTitle.current;
+    }
+    lines.forEach(function (line) {
+        var matches = line.match(this.opts.sectionTitleRegex);
+        if (matches !== null) {
+            if (matches.length === 1)
+                sectionTitle.current = line;
+            else
+                sectionTitle.current = matches[1];
+        }
+    });
+}
 
 //// CLASS METHODS ////////////////////////////////////////////////////////////
 
 /**
  * Adds test assertion methods to an instance of tap. These assertions call shortenDiff() on their found and wanted values using a provided instance of Crumpler. Each of these assertion methods takes parameters in the form textEqual(found, wanted, crumpler, description, extra). Only the first two parameters are required. The default crumpler is `new Crumpler()`.
  *
- * When lines are being numbered, these assertion methods attache a `{lineNumbers: true}` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
+ * When lines are being numbered, these assertion methods add a `lineNumberDelim` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
  *
  * @param tap The instance of the tap module to which to add the assertions.
  */
@@ -361,11 +405,9 @@ function textEqual(found, wanted, crumpler, message, extra) {
     }
     crumpler = crumpler || DEFAULT_CRUMPLER;
     message = message || "text should be identical";
-    extra = extra || {};
     var shrunk = crumpler.shortenDiff(found, wanted);
-    if (shrunk.lineNumberDelim !== null)
-        extra.lineNumberDelim = shrunk.lineNumberDelim;
-    return this.equal(shrunk.subject, shrunk.model, message, extra);
+    return this.equal(shrunk.subject, shrunk.model, message,
+            getExtras(extra, shrunk));
 }
 
 function textNotEqual(found, notWanted, crumpler, message, extra) {
@@ -376,11 +418,9 @@ function textNotEqual(found, notWanted, crumpler, message, extra) {
     }
     crumpler = crumpler || DEFAULT_CRUMPLER;
     message = message || "text should be different";
-    extra = extra || {};
     var shrunk = crumpler.shortenDiff(found, notWanted);
-    if (shrunk.lineNumberDelim !== null)
-        extra.lineNumberDelim = shrunk.lineNumberDelim;
-    return this.notEqual(shrunk.subject, shrunk.model, message, extra);
+    return this.notEqual(shrunk.subject, shrunk.model, message,
+            getExtras(extra, shrunk));
 }
 
 //// SUPPORT FUNCTIONS ////////////////////////////////////////////////////////
@@ -411,6 +451,15 @@ function getDiffInfo(subjectLine, modelLine) {
         subjectDiffLength: subjectIndex - diffIndex,
         modelDiffLength: modelIndex - diffIndex
     };
+}
+
+function getExtras(providedExtras, resultExtras) {
+    var extra = providedExtras || {};
+    if (!_.isUndefined(resultExtras.sectionTitlePrefix))
+        extra.sectionTitlePrefix = resultExtras.sectionTitlePrefix;
+    if (!_.isUndefined(resultExtras.lineNumberDelim))
+        extra.lineNumberDelim = resultExtras.lineNumberDelim;
+    return extra;
 }
 
 function toLinesWithOptionalLF(text) {

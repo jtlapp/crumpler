@@ -14,7 +14,7 @@ t.test("diffs with empty lines", function (t) {
         maxLineDiffLength: 3 
     });    
     t.deepEqual(crumpler.shortenDiff('', ''),
-        { subject: '', model: '', lineNumberDelim: null },
+        { subject: '', model: '' },
         "diff blank lines with non-zero limits");
 
     crumpler = new Crumpler({
@@ -24,7 +24,7 @@ t.test("diffs with empty lines", function (t) {
         maxLineDiffLength: 0
     });
     t.deepEqual(crumpler.shortenDiff('', ''),
-        { subject: '', model: '', lineNumberDelim: null },
+        { subject: '', model: '' },
         "diff blank lines with zero limits");
 
     crumpler = new Crumpler({
@@ -34,7 +34,7 @@ t.test("diffs with empty lines", function (t) {
         maxLineDiffLength: 1
     });
     t.deepEqual(crumpler.shortenDiff('', ''),
-        { subject: '', model: '', lineNumberDelim: null },
+        { subject: '', model: '' },
         "diff blank lines with zero limits and max diff length 1");
 
     t.end();
@@ -51,16 +51,14 @@ t.test("diffing empty and non-empty lines", function (t) {
     lib.testDiffs(t, "diff with empty found line, non-zero limits",
         crumpler.shortenDiff('', 'a'), {
             subject: '',
-            model: 'a',
-            lineNumberDelim: null
+            model: 'a'
         }
     );
 
     lib.testDiffs(t, "diff with empty wanted line, non-zero limits",
         crumpler.shortenDiff('a', ''), {
             subject: 'a',
-            model: '',
-            lineNumberDelim: null
+            model: ''
         }
     );
 
@@ -74,16 +72,14 @@ t.test("diffing empty and non-empty lines", function (t) {
     lib.testDiffs(t, "diff with empty found line, zero limits",
         crumpler.shortenDiff('', 'a'), {
             subject: '',
-            model: 'a',
-            lineNumberDelim: null
+            model: 'a'
         }
     );
 
     lib.testDiffs(t, "diff with empty wanted line, zero limits",
         crumpler.shortenDiff('a', ''), {
             subject: 'a',
-            model: '',
-            lineNumberDelim: null
+            model: ''
         }
     );
 
@@ -97,16 +93,14 @@ t.test("diffing empty and non-empty lines", function (t) {
     lib.testDiffs(t, "diff with empty found line, zero limits but max diff 1",
         crumpler.shortenDiff('', 'a'), {
             subject: '',
-            model: 'a',
-            lineNumberDelim: null
+            model: 'a'
         }
     );
 
     lib.testDiffs(t, "diff with empty wanted line, zero limits but max diff 1",
         crumpler.shortenDiff('a', ''), {
             subject: 'a',
-            model: '',
-            lineNumberDelim: null
+            model: ''
         }
     );
 
@@ -130,23 +124,23 @@ t.test("incomparable or identical diff values", function (t) {
     }, notStringError);
     
     t.deepEqual(crumpler.shortenDiff(true, "true"),
-        { subject: true, model: "true", lineNumberDelim: null },
+        { subject: true, model: "true" },
         "incomparable boolean and string");
 
     t.deepEqual(crumpler.shortenDiff(["abc"], "abc"),
-        { subject: ["abc"], model: "abc", lineNumberDelim: null },
+        { subject: ["abc"], model: "abc" },
         "incomparable array and string");
 
     t.deepEqual(crumpler.shortenDiff({ x: 'abc' }, '{"x":"abc"}'),
-        { subject: { x: 'abc' }, model: '{"x":"abc"}', lineNumberDelim: null },
+        { subject: { x: 'abc' }, model: '{"x":"abc"}' },
         "incomparable object and its serialization");
         
     t.deepEqual(crumpler.shortenDiff("abc", "abc"),
-        { subject: "abc", model: "abc", lineNumberDelim: null },
+        { subject: "abc", model: "abc" },
         "identical single-line strings");
 
     t.deepEqual(crumpler.shortenDiff("abc\ndef\n", "abc\ndef\n"),
-        { subject: "abc\ndef\n", model: "abc\ndef\n", lineNumberDelim: null },
+        { subject: "abc\ndef\n", model: "abc\ndef\n" },
         "identical multi-line strings");
         
     var foundPair = crumpler.shortenDiff(tenLines, tenLines);
@@ -154,7 +148,7 @@ t.test("incomparable or identical diff values", function (t) {
         lib.normEllipsis() +"\n"+
         "Eighth line.\nNineth line.\nTenth line.";
     lib.testDiffs(t, "identical 10-line strings", foundPair,
-        { subject: wanted, model: wanted, lineNumberDelim: null });
+        { subject: wanted, model: wanted });
     
     crumpler = new Crumpler({
         minNumberedLines: 0,
@@ -165,14 +159,14 @@ t.test("incomparable or identical diff values", function (t) {
     foundPair = crumpler.shortenDiff(ALPHANUM, ALPHANUM);
     var wanted = "abcdefghij"+ lib.tailEllipsis(26);
     lib.testDiffs(t, "identical tail-cropped single line", foundPair,
-        { subject: wanted, model: wanted, lineNumberDelim: null });
+        { subject: wanted, model: wanted });
         
     var shortLine = ALPHANUM.substr(0, 10);
     var text = ALPHANUM +"\n"+ shortLine +"\n" + ALPHANUM +"\n";
     foundPair = crumpler.shortenDiff(text, text);
     wanted = wanted +"\n"+ shortLine +"\n"+ wanted +"\n";
     lib.testDiffs(t, "identical tail-cropped multiple lines", foundPair,
-        { subject: wanted, model: wanted, lineNumberDelim: null });
+        { subject: wanted, model: wanted });
 
     t.end();
 });
@@ -183,59 +177,59 @@ t.test("non-collapsed diffs within maximum line length", function (t) {
     });
     
     t.deepEqual(crumpler.shortenDiff("abc", "123"),
-        { subject: "abc", model: "123", lineNumberDelim: null },
+        { subject: "abc", model: "123" },
         "different-from-start short single-line strings");
 
     t.deepEqual(crumpler.shortenDiff("abc\ndef", "123\n456"),
-        { subject: "abc\ndef", model: "123\n456", lineNumberDelim: null },
+        { subject: "abc\ndef", model: "123\n456" },
         "different-from-start short multiline strings");
 
     var wanted = "abc\n123";
     var found =  "abc\ndef";
     var foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "1st line same, 2nd line diff", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
 
     wanted += "\n";
     var foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "1st line same, 2nd line diff, wanted + LF", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
     
     wanted = "abc\n123";
     found += "\n";
     var foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "1st line same, 2nd line diff, found + LF", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
     
     wanted = "123\ndef";
     found =  "abc\ndef";
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "1st line diff, 2nd line same", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
     
     wanted = "abc\ndef\nghi\njkl";
     found =  "abc\ndef\n123\njkl";
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "increasing diff delta complexity 1", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
     
     wanted = "abc\ndef\nghi\njkl\nmno";
     found =  "abc\ndef\n123\njkl\n456";
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "increasing diff delta complexity 2", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
     
     wanted = "abc\ndef\nghi\njkl";
     found =  "abc\ndef\n123\n456\nghi\njkl";
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "increasing diff delta complexity 3", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
     
     wanted = "abc\ndef\nghi\njkl\nmno";
     found =  "abc\nghi\njkl\nmno";
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "increasing diff delta complexity 4", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
 
     crumpler = new Crumpler({
         minNumberedLines: 0,
@@ -246,7 +240,7 @@ t.test("non-collapsed diffs within maximum line length", function (t) {
     found =  "abc\ndef";
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "simple diff at maximum line length", foundPair,
-        { subject: found, model: wanted, lineNumberDelim: null });
+        { subject: found, model: wanted });
 
     crumpler = new Crumpler({
         minNumberedLines: 0,
@@ -256,7 +250,7 @@ t.test("non-collapsed diffs within maximum line length", function (t) {
     });
     foundPair = crumpler.shortenDiff(found, wanted);
     lib.testDiffs(t, "simple diff at max line length, unused same length",
-        foundPair, { subject: found, model: wanted, lineNumberDelim: null });
+        foundPair, { subject: found, model: wanted });
     
     t.end();
 });
@@ -268,27 +262,27 @@ t.test("non-collapsed diffs within maximum diff length", function (t) {
     });
     
     t.deepEqual(crumpler.shortenDiff("abcdef", "abc123def"),
-        { subject: "abcdef", model: "abc123def", lineNumberDelim: null },
+        { subject: "abcdef", model: "abc123def" },
         "found none at max diff length, under max line length");
 
     t.deepEqual(crumpler.shortenDiff("abc12def", "abc123def"),
-        { subject: "abc12def", model: "abc123def", lineNumberDelim: null },
+        { subject: "abc12def", model: "abc123def" },
         "found fewer at max diff length, under max line length");
 
     t.deepEqual(crumpler.shortenDiff("abcdef", "abc1def"),
-        { subject: "abcdef", model: "abc1def", lineNumberDelim: null },
+        { subject: "abcdef", model: "abc1def" },
         "found fewer under max diff length, under max line length");
 
     t.deepEqual(crumpler.shortenDiff("abc123def", "abcdef"),
-        { subject: "abc123def", model: "abcdef", lineNumberDelim: null },
+        { subject: "abc123def", model: "abcdef" },
         "found something at max diff length, under max line length");
 
     t.deepEqual(crumpler.shortenDiff("abc123def", "abc12def"),
-        { subject: "abc123def", model: "abc12def", lineNumberDelim: null },
+        { subject: "abc123def", model: "abc12def" },
         "found more at max diff length, under max line length");
 
     t.deepEqual(crumpler.shortenDiff("abc1def", "abcdef"),
-        { subject: "abc1def", model: "abcdef", lineNumberDelim: null },
+        { subject: "abc1def", model: "abcdef" },
         "found more under max diff length, under max line length");
 
     var wantedIn = "abc\ndef123ghi\njkl\n";
@@ -296,8 +290,7 @@ t.test("non-collapsed diffs within maximum diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "middle line wanted more", foundPair, {
         model: "abc\ndef123ghi\njkl\n",
-        subject: "abc\ndef12ghi\njkl\n",
-        lineNumberDelim: null
+        subject: "abc\ndef12ghi\njkl\n"
     });
 
     var wantedIn = "abc\ndef12ghi\njkl\n";
@@ -305,8 +298,7 @@ t.test("non-collapsed diffs within maximum diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "middle line wanted fewer", foundPair, {
         model: "abc\ndef12ghi\njkl\n",
-        subject: "abc\ndef123ghi\njkl\n",
-        lineNumberDelim: null
+        subject: "abc\ndef123ghi\njkl\n"
     });
 
     t.end();
@@ -324,8 +316,7 @@ t.test("simple multiline collapse diffs", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "both collapsed, diff from start", foundPair, {
         subject: "123\n"+ lib.subjectEllipsis() +"\nXYZ\n",
-        model: "ABC\n"+ lib.modelEllipsis() +"\nJKL\n",
-        lineNumberDelim: null
+        model: "ABC\n"+ lib.modelEllipsis() +"\nJKL\n"
     });
 
     wantedIn = "ABC\nDEF\n";
@@ -333,8 +324,7 @@ t.test("simple multiline collapse diffs", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "only found collapsed, diff from start", foundPair, {
         subject: "123\n"+ lib.subjectEllipsis() +"\nXYZ\n",
-        model: "ABC\nDEF\n",
-        lineNumberDelim: null
+        model: "ABC\nDEF\n"
     });
     
     wantedIn = "ABC\nDEF\nGHI\nJKL\n";
@@ -342,8 +332,7 @@ t.test("simple multiline collapse diffs", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "only wanted collapsed, diff from start", foundPair, {
         subject: "123\n456",
-        model: "ABC\n"+ lib.modelEllipsis() +"\nJKL\n",
-        lineNumberDelim: null
+        model: "ABC\n"+ lib.modelEllipsis() +"\nJKL\n"
     });
     
     t.end();
@@ -376,8 +365,7 @@ t.test("complex diffs within maximum line length", function (t) {
     var foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "single same, multi diff", foundPair, {
         model: single_a + util.format(multi4aOut, lib.modelEllipsis()),
-        subject: single_a + util.format(multi4bOut, lib.subjectEllipsis()),
-        lineNumberDelim: null
+        subject: single_a + util.format(multi4bOut, lib.subjectEllipsis())
     });
 
     wantedIn = single_a + multi4aIn + single_b;
@@ -387,8 +375,7 @@ t.test("complex diffs within maximum line length", function (t) {
         model: single_a + util.format(multi4aOut, lib.modelEllipsis()) +
             single_b,
         subject: single_a + util.format(multi4bOut, lib.subjectEllipsis()) +
-            single_b,
-        lineNumberDelim: null
+            single_b
     });
 
     wantedIn = multi4aIn + multi5aIn;
@@ -398,8 +385,7 @@ t.test("complex diffs within maximum line length", function (t) {
         model: util.format(multi4aOut, lib.normEllipsis()) +
             util.format(multi5aOut, lib.modelEllipsis()),
         subject: util.format(multi4aOut, lib.normEllipsis()) +
-            util.format(multi5bOut, lib.subjectEllipsis()),
-        lineNumberDelim: null
+            util.format(multi5bOut, lib.subjectEllipsis())
     });
 
     wantedIn = multi4aIn + multi5aIn + multi4aIn;
@@ -411,8 +397,7 @@ t.test("complex diffs within maximum line length", function (t) {
             util.format(multi4aOut, lib.normEllipsis()),
         subject: util.format(multi4aOut, lib.normEllipsis()) +
             util.format(multi5bOut, lib.subjectEllipsis()) +
-            util.format(multi4aOut, lib.normEllipsis()),
-        lineNumberDelim: null
+            util.format(multi4aOut, lib.normEllipsis())
     });
 
     wantedIn = multi4aIn + single_a + multi4aIn;
@@ -424,8 +409,7 @@ t.test("complex diffs within maximum line length", function (t) {
             util.format(multi4aOut, lib.normEllipsis()),
         subject: util.format(multi4aOut, lib.normEllipsis()) +
             single_b +
-            util.format(multi4aOut, lib.normEllipsis()),
-        lineNumberDelim: null
+            util.format(multi4aOut, lib.normEllipsis())
     });
 
     wantedIn = single_a + multi4aIn;
@@ -433,8 +417,7 @@ t.test("complex diffs within maximum line length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "single diff, multi same", foundPair, {
         model: single_a + util.format(multi4aOut, lib.normEllipsis()),
-        subject: single_b + util.format(multi4aOut, lib.normEllipsis()),
-        lineNumberDelim: null
+        subject: single_b + util.format(multi4aOut, lib.normEllipsis())
     });
 
     wantedIn = single_a + multi4aIn + single_c;
@@ -442,8 +425,7 @@ t.test("complex diffs within maximum line length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "single diff, multi same, single diff", foundPair, {
         model: single_a + util.format(multi4aOut, lib.normEllipsis()) + single_c,
-        subject: single_b + util.format(multi4aOut, lib.normEllipsis()) + single_d,
-        lineNumberDelim: null
+        subject: single_b + util.format(multi4aOut, lib.normEllipsis()) + single_d
     });
 
     wantedIn = multi4aIn + multi5aIn;
@@ -453,8 +435,7 @@ t.test("complex diffs within maximum line length", function (t) {
         model: util.format(multi4aOut, lib.modelEllipsis()) +
             util.format(multi5aOut, lib.normEllipsis()),
         subject: util.format(multi4bOut, lib.subjectEllipsis()) +
-            util.format(multi5aOut, lib.normEllipsis()),
-        lineNumberDelim: null
+            util.format(multi5aOut, lib.normEllipsis())
     });
 
     wantedIn = multi4aIn + multi5aIn + multi4bIn;
@@ -466,8 +447,7 @@ t.test("complex diffs within maximum line length", function (t) {
             util.format(multi4bOut, lib.modelEllipsis()),
         subject: util.format(multi4bOut, lib.subjectEllipsis()) +
             util.format(multi5aOut, lib.normEllipsis()) +
-            util.format(multi4aOut, lib.subjectEllipsis()),
-        lineNumberDelim: null
+            util.format(multi4aOut, lib.subjectEllipsis())
     });
 
     wantedIn = multi4aIn + single_a + multi5aIn;
@@ -479,8 +459,7 @@ t.test("complex diffs within maximum line length", function (t) {
             util.format(multi5aOut, lib.modelEllipsis()),
         subject: util.format(multi4bOut, lib.subjectEllipsis()) +
             single_a +
-            util.format(multi5bOut, lib.subjectEllipsis()),
-        lineNumberDelim: null
+            util.format(multi5bOut, lib.subjectEllipsis())
     });
 
     t.end();

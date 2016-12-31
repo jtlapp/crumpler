@@ -34,7 +34,9 @@ var crumpler = new Crumpler({
     maxLineDiffLength: 180, // truncate line differences at 180 chars
     sameHeadLengthLimit: 85, // show 85 chars of line preceding difference
     sameTailLengthLimit: 65, // show 65 chars of line following difference
-    lineNumberPadding: '0' // left-pad line numbers with zeros
+    lineNumberPadding: '0', // left-pad line numbers with zeros
+    sectionTitleRegex: /^(CHAPTER \d+)/, // regex identifying section titles
+    sectionTitlePrefix: '<#> ' // prefix that precedes output section titles
 });
 ```
 
@@ -58,6 +60,8 @@ t.textInequal(f,w,c,m,e) | Compares found text `f` with wanted text `w` using cr
 t.textNotEqual(f,w,c,m,e) | Same as `t.textInequal(f,w,c,m,e)`.
 
 These assertions are analogous to `tap`'s `t.equal()` and `t.notEqual()` assertions, as explained at [node-tap.org](http://www.node-tap.org/asserts/), except that they also take a `Crumpler` instance for configuration.
+
+**Note:** The `sectionTitleRegex` feature is untested. After implementing it, I decided I wanted to test each section separately instead of testing across all sections and having `crumpler` report the title of the tested section in the diffs. If this feature interests you, I'd love a test suite for it.
 
 ## Example
 
@@ -120,6 +124,8 @@ The Crumpler constructor optionally takes an object of configuration options. If
 var crumpler = new Crumpler(options);
 ```
 
+### Line Collapsing Options
+
 The following options govern collapsing sequences of lines:
 
 Collapse Option | Description
@@ -127,6 +133,8 @@ Collapse Option | Description
 normBracketSize | Number of lines to show on each side of a collapsed sequence of lines that does not differ from a comparison text. This is the number of lines in a bracket of text that is common to a comparison text or that is not being compared to another text. Set to 0 to turn off collapsing in these cases. (default 2)
 diffBracketSize | Number of lines to show on each side of a collapsed sequence of lines that differs from a comparison text. Set to 0 to disable the collapsing of text that differs from the comparison text. (default 0)
 minCollapsedLines | Minimum number of lines that can be removed from a sequence of lines to collapse it. In order for text to collapse it must have at least this number of lines plus twice the applicable bracket size. Set to 0 to disable all collapsing of text, regardless of the values of normBracketSize and diffBracketSize. (default 2)
+
+### Line Cropping Options
 
 The following options govern line cropping:
 
@@ -136,6 +144,8 @@ maxNormLineLength | The maximum number of characters to show from each line of a
 maxLineDiffLength | The maximum number of differing characters to show from each line of a series of lines that differs from a comparison text. The first line of a series of differing lines may also show non-differing characters before and after the differing characters, according to sameHeadLengthLimit and sameTailLengthLimit, but second and subsequent lines of the series crop at maxLineDiffLength characters. Set to 0 to show all differing characters. (default 0)
 sameHeadLengthLimit | The limited number of characters of a line to show before the first character that differs from a comparison text. These characters are common to both subject and model texts at the start of the first line of a series of one or more lines that differ between the texts. They provide preceding context for the differing characters. Characters of the line prior to this context are cropped and replaced with headCropEllipsis, but only if the crop would exceed the length of the replacement. Set to 0 to never show characters that precede line differences. Set to -1 to show all preceding characters. (default -1)
 sameTailLengthLimit | The limited number of characters of a line to show after the last character that differs from a comparison text. These characters are common to both subject and model texts at the end of the first line of a series of one or more lines that differ between the texts. They provide trailing context for the first-line characters that differ. Characters of the line after this context are cropped and replaced with tailCropEllipsis, but only if the crop would exceed the length of the replacement. When maxLineDiffLength truncates the number of differing characters shown, no trailing context characters are shown. Set to 0 to never show the characters that follow line differences. Set to -1 to show all following characters. (default -1)
+
+### Replacement Text Options
 
 The following options provide replacement text for text that is removed by collapsing or cropping. Their values may optionally contain `{n}`. Within the collapse ellipses, `{n}` is a placeholder for the number of lines removed. Within the crop ellipses, `{n}` is a placeholder for the number of characters removed. By making minCollapsedLines >= 2, the collapse ellipses language can assume a plurality. Because crops never replace fewer characters than their lengths, the crop ellipses language can assume a plurality by ensuring that headCropEllipsis and tailCropEllipsis always contain at least two characters.
 
@@ -151,6 +161,17 @@ indentCollapseEllipses | When true and lines are being numbered, each line of a 
 Any of these ellipses may be blank, but only collapse ellipses may contain LFs (`\n`). A blank collapse ellipsis produces a blank line, while a blank crop ellipsis abruptly truncates the line. A trailing LF of a collapse ellipsis produces a trailing blank line.
   
 The collapse ellipses need not all be different, but they should all be different. Making them distinct from one another helps downstream tools that diff the collapsed strings to properly recognize differences. These tools may otherwise assume that collapse ellipses all represent identical lines.
+
+### Section Title Options
+
+The following options govern the capture and display of section titles. To further facilitate identifying the location of differing lines, it helps to show the title of the section that contains the differing lines, when the document provides section titles. This solution assumes that section titles do not span multiple lines.
+
+Section Title Option | Description
+--- | ---
+sectionTitleRegex | This regular expression matches lines that contain section titles. If there are no capture groups, the entire line is used as the title. Otherwise, the outermost capture group extracts the title. `null` when there are no section titles or when you don't wish to output them. (default `null`)
+sectionTitlePrefix | This prefix precedes the section title on lines output to show where a subsequent difference is found. (default `<#> `)
+
+### Line Numbering Options
 
 The following options govern line numbering. Line numbering is useful both for mapping lines in abbreviated text to the original text and for readily observing the lengths of collapsed text.
 
@@ -198,9 +219,11 @@ Create an instance of Crumpler, optionally configured.
 
 Shorten the subject and model text strings to minimal representations that clearly show differences between them. Returns an abbreviated subject string and an abbreviated model string that themselves can be compared using a diffing tool to properly highlight their differences. The method reduces both the number of lines and the lengths of individual lines, according to the configuration. It also numbers the lines in accordance with the configuration.
 
+If section titles are being output to the shortened text to show the context of differences, a diffing tool that subsequently compares the values will have to be smart enough to ignore the section titles. This method also returns the prefix for section title lines, if any, for use by the downstream diffing tool to properly handle section titles.
+
 If line numbers are being added to the shortened text, and if the line numbers of the subject and model values disagree on any lines, a diffing tool that subsequently compares the values will have to be smart enough to ignore the line numbers, unless the line numbers are removed prior to diffing. This method also returns the line number delimiter it used, if any, for use by the downstream diffing tool to properly handle line numbers.
 
-**Returns**: An object having properties `subject`, `model`, and `lineNumberDelim`. The first two properties are the abbreviated subject and model texts, shortened to optimize comparing their differences. `lineNumberDelim` is either null to indicate that subject and model lines were not numbered or a string providing the delimiter used between each line number and the rest of the line. Collapsed ellipsis lines are not numbered. Subject or model text that is an empty string has no lines and no line numbers.  
+**Returns**: An object having properties `subject`, `model`, `sectionTitlePrefix`, and `lineNumberDelim`. The first two properties are the abbreviated subject and model texts, shortened to optimize comparing their differences. `sectionTitlePrefix` is either null or a string that marks the start of each line that presents a section title for a subsequent difference. `lineNumberDelim` is either null to indicate that subject and model lines were not numbered or a string providing the delimiter used between each line number and the rest of the line. Collapsed ellipsis lines are not numbered. Subject or model text that is an empty string has no lines and no line numbers.  
 <a name="Crumpler+shortenText"></a>
 
 ### *crumpler*.shortenText(text, maxLineLength)
@@ -223,7 +246,7 @@ Shorten the provided text in accordance with the configuration. Because the text
 
 Adds test assertion methods to an instance of tap. These assertions call shortenDiff() on their found and wanted values using a provided instance of Crumpler. Each of these assertion methods takes parameters in the form textEqual(found, wanted, crumpler, description, extra). Only the first two parameters are required. The default crumpler is `new Crumpler()`.
 
-When lines are being numbered, these assertion methods attache a `{lineNumbers: true}` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
+When lines are being numbered, these assertion methods add a `lineNumberDelim` option to the tap extra field, which allows tools that process TAP downstream to treat numbered text differently. Subtap does this to ignore line numbers when comparing subject and model text.
 
 
 ## LICENSE

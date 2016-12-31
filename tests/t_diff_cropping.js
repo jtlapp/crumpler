@@ -20,8 +20,7 @@ t.test("too few same characters to crop", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head/tail under same limit, found more", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
 
     wantedIn = minHead +"abc123def"+ minTail;
@@ -29,8 +28,7 @@ t.test("too few same characters to crop", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head/tail under same limit, found less", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
 
     minHead = 'H'.repeat(lib.headEllipsis(10).length);
@@ -41,8 +39,7 @@ t.test("too few same characters to crop", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head/tail at same limit, found more", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
 
     wantedIn = minHead +"abc123def"+ minTail;
@@ -50,8 +47,7 @@ t.test("too few same characters to crop", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head/tail at same limit, found less", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
 
     t.end();
@@ -75,8 +71,7 @@ t.test("over same-character cropping limits", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head over same limit, found more", foundPair, {
         model: headCrop +"abcde"+ tail,
-        subject: headCrop +"abc123de"+ tail,
-        lineNumberDelim: null
+        subject: headCrop +"abc123de"+ tail
     });
 
     wantedIn = head +"abc123de"+ tail;
@@ -84,8 +79,7 @@ t.test("over same-character cropping limits", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head over same limit, found less", foundPair, {
         model: headCrop +"abc123de"+ tail,
-        subject: headCrop +"abcde"+ tail,
-        lineNumberDelim: null
+        subject: headCrop +"abcde"+ tail
     });
 
     wantedIn = head +"bcdef"+ tail;
@@ -93,8 +87,7 @@ t.test("over same-character cropping limits", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "tail over same limit, found more", foundPair, {
         model: head +"bcdef"+ tailCrop,
-        subject: head +"bc123def"+ tailCrop,
-        lineNumberDelim: null
+        subject: head +"bc123def"+ tailCrop
     });
 
     wantedIn = head +"bc123def"+ tail;
@@ -102,8 +95,7 @@ t.test("over same-character cropping limits", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "tail over same limit, found less", foundPair, {
         model: head +"bc123def"+ tailCrop,
-        subject: head +"bcdef"+ tailCrop,
-        lineNumberDelim: null
+        subject: head +"bcdef"+ tailCrop
     });
 
     wantedIn = head +"abcdef"+ tail;
@@ -111,8 +103,7 @@ t.test("over same-character cropping limits", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head/tail over same limit, found more", foundPair, {
         model: headCrop +"abcdef"+ tailCrop,
-        subject: headCrop +"abc123def"+ tailCrop,
-        lineNumberDelim: null
+        subject: headCrop +"abc123def"+ tailCrop
     });
 
     wantedIn = head +"abc123def"+ tail;
@@ -120,8 +111,7 @@ t.test("over same-character cropping limits", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head/tail over same limit, found less", foundPair, {
         model: headCrop +"abc123def"+ tailCrop,
-        subject: headCrop +"abcdef"+ tailCrop,
-        lineNumberDelim: null
+        subject: headCrop +"abcdef"+ tailCrop
     });
 
     t.end();
@@ -146,8 +136,7 @@ t.test("custom same head/tail cropping ellipses", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head over same limit, custom ellipsis w/ count", foundPair, {
         model: headCrop +"abcXYZde"+ tail,
-        subject: headCrop +"abc123de"+ tail,
-        lineNumberDelim: null
+        subject: headCrop +"abc123de"+ tail
     });
 
     wantedIn = head +"bcXYZdef"+ tail;
@@ -155,8 +144,7 @@ t.test("custom same head/tail cropping ellipses", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "tail over same limit, custom ellipsis w/ count", foundPair, {
         model: head +"bcXYZdef"+ tailCrop,
-        subject: head +"bc123def"+ tailCrop,
-        lineNumberDelim: null
+        subject: head +"bc123def"+ tailCrop
     });
 
     crumpler = new Crumpler({
@@ -177,8 +165,7 @@ t.test("custom same head/tail cropping ellipses", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "head over same limit, custom ellipsis w/out count", foundPair, {
         model: headCrop +"abcXYZde"+ tail,
-        subject: headCrop +"abc123de"+ tail,
-        lineNumberDelim: null
+        subject: headCrop +"abc123de"+ tail
     });
 
     wantedIn = head +"bcXYZdef"+ tail;
@@ -186,8 +173,7 @@ t.test("custom same head/tail cropping ellipses", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "tail over same limit, custom ellipsis w/out count", foundPair, {
         model: head +"bcXYZdef"+ tailCrop,
-        subject: head +"bc123def"+ tailCrop,
-        lineNumberDelim: null
+        subject: head +"bc123def"+ tailCrop
     });
 
     t.end();
@@ -209,8 +195,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "under tail-crop limit, found more", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
     
     wantedIn = "abcd"+ tail; // would crop 12 chars
@@ -218,8 +203,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "under tail-crop limit, found less", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
     
     wantedIn = "abT"+ tail;
@@ -227,8 +211,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "at tail no-crop limit, found more", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
     
     wantedIn = "abcdT"+ tail; // would crop 13 chars
@@ -236,8 +219,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "at tail no-crop limit, found less", foundPair, {
         model: wantedIn,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
     
     wantedIn = "abTT"+ tail;
@@ -245,8 +227,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "over tail-crop limit, found more", foundPair, {
         model: wantedIn,
-        subject: "123"+ tailCrop,
-        lineNumberDelim: null
+        subject: "123"+ tailCrop
     });
 
     wantedIn = "abcdTT"+ tail; // crops 14 chars
@@ -254,8 +235,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "over tail-crop limit, found less", foundPair, {
         model: "abc"+ tailCrop,
-        subject: foundIn,
-        lineNumberDelim: null
+        subject: foundIn
     });
 
     wantedIn = "abcdTT"+ tail; // crops 14 chars
@@ -263,8 +243,7 @@ t.test("tail-cropping for max diff length", function (t) {
     foundPair = crumpler.shortenDiff(foundIn, wantedIn);
     lib.testDiffs(t, "both over tail-crop limit, found less", foundPair, {
         model: "abc"+ tailCrop,
-        subject: "123"+ tailCrop,
-        lineNumberDelim: null
+        subject: "123"+ tailCrop
     });
 
     t.end();
@@ -287,8 +266,7 @@ t.test("interactions of maxLineDiffLength with same-limits", function (t) {
     lib.testDiffs(t, "tail-crop despite long enough sameTailLengthLimit",
         crumpler.shortenDiff(foundIn, wantedIn), {
             model: "abc"+ tailCrop,
-            subject: "123"+ tailCrop,
-            lineNumberDelim: null
+            subject: "123"+ tailCrop
         }
     );
 
@@ -301,8 +279,7 @@ t.test("interactions of maxLineDiffLength with same-limits", function (t) {
     lib.testDiffs(t, "tail-crop despite sameTailLengthLimit that would make line too short",
         crumpler.shortenDiff(foundIn, wantedIn), {
             model: "abc"+ tailCrop,
-            subject: "123"+ tailCrop,
-            lineNumberDelim: null
+            subject: "123"+ tailCrop
         }
     );
     
@@ -311,8 +288,7 @@ t.test("interactions of maxLineDiffLength with same-limits", function (t) {
     lib.testDiffs(t, "head-cropping with maxLineDiffLength tail cropping",
         crumpler.shortenDiff(foundIn, wantedIn), {
             model: headCrop +"xxxabc"+ tail,
-            subject: headCrop +"xxx123"+ tailCrop,
-            lineNumberDelim: null
+            subject: headCrop +"xxx123"+ tailCrop
         }
     );
 
@@ -348,8 +324,7 @@ t.test("cropping multi-line differences", function (t) {
         model: "xyz\nAAA"+ lib.tailEllipsis(14) +"\n"+
                 "BBB"+ lib.tailEllipsis(15) +"\npdq\n",
         subject: "xyz\nCCC"+ lib.tailEllipsis(14) +"\n"+
-                "DDD"+ lib.tailEllipsis(15) +"\npdq\n",
-        lineNumberDelim: null
+                "DDD"+ lib.tailEllipsis(15) +"\npdq\n"
     });
 
     wantedIn = "xyz\n00"+ long1 +"00"+ long2 +"pdq\n";
@@ -359,8 +334,7 @@ t.test("cropping multi-line differences", function (t) {
         model: "xyz\n00AAA"+ lib.tailEllipsis(14) +"\n"+
                 "00B"+ lib.tailEllipsis(17) +"\npdq\n",
         subject: "xyz\n00CCC"+ lib.tailEllipsis(14) +"\n"+
-                "00D"+ lib.tailEllipsis(17) +"\npdq\n",
-        lineNumberDelim: null
+                "00D"+ lib.tailEllipsis(17) +"\npdq\n"
     });
 
     wantedIn = long1 + short1 + long2 + short2;
@@ -374,8 +348,7 @@ t.test("cropping multi-line differences", function (t) {
         subject: "CCC"+ lib.tailEllipsis(14) +"\n"+
                 short3+
                 "DDD"+ lib.tailEllipsis(15) +"\n"+
-                short4,
-        lineNumberDelim: null
+                short4
     });
 
     wantedIn = short2 + long1 + short1 + long2;
@@ -389,8 +362,7 @@ t.test("cropping multi-line differences", function (t) {
         subject: short4+
                 "CCC"+ lib.tailEllipsis(14) +"\n"+
                 short3+
-                "DDD"+ lib.tailEllipsis(15) +"\n",
-        lineNumberDelim: null
+                "DDD"+ lib.tailEllipsis(15) +"\n"
     });
 
     wantedIn = head +"abc123def"+ tail +"\n"+ head + long1;
@@ -400,8 +372,7 @@ t.test("cropping multi-line differences", function (t) {
         model: headCrop +"abc123def"+ tailCrop +"\n"+
                 "HHH"+ lib.tailEllipsis(String(head + long1).length - 4) +"\n",
         subject: headCrop +"abcdef"+ tailCrop +"\n"+
-                "HHH"+ lib.tailEllipsis(String(head + long2).length - 4) +"\n",
-        lineNumberDelim: null
+                "HHH"+ lib.tailEllipsis(String(head + long2).length - 4) +"\n"
     });
 
     crumpler = new Crumpler({
@@ -418,8 +389,7 @@ t.test("cropping multi-line differences", function (t) {
                 "DD"+ lib.tailEllipsis(16) +"\n",
         subject: "AA"+ lib.tailEllipsis(15) +"\n"+
                 "CCC"+ lib.tailEllipsis(14) +"\n"+
-                "DD"+ lib.tailEllipsis(16) +"\n",
-        lineNumberDelim: null
+                "DD"+ lib.tailEllipsis(16) +"\n"
     });
 
     t.end();
